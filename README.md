@@ -52,3 +52,7 @@ heroku open
 ```
 
 - This will open your app in the default browser.
+   
+   
+   
+### deploy your advance URL shortener code on a VPS,
