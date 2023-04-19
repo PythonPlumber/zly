@@ -3,9 +3,24 @@ import psycopg2
 import string
 import random
 
+DATABASE_URL = os.environ['DATABASE_URL']
+DB_USER = os.environ['DB_USER']
+DB_PASSWORD = os.environ['DB_PASSWORD']
+DB_HOST = os.environ['DB_HOST']
+DB_PORT = os.environ['DB_PORT']
+
+# Connect to PostgreSQL database
+conn = psycopg2.connect(
+    dbname=DB_NAME,
+    user=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    port=DB_PORT
+)
+
 app = Flask(__name__)
 
-conn = psycopg2.connect(database="DATABASE", user="USER", password="PASSWORD", host="HOST", port="PORT")
+conn = psycopg2.connect(database="dbname", user="user", password="password", host="host", port="port")
 cur = conn.cursor()
 
 def generate_short_url():
