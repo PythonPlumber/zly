@@ -56,3 +56,25 @@ heroku open
    
    
 ### deploy your advance URL shortener code on a VPS,
+   
+ -  Choose a VPS provider: You can choose any VPS provider like DigitalOcean, Linode, Vultr, or Amazon AWS, depending on your requirements.
+
+ -  Set up a server: After choosing a provider, create a server instance with your preferred operating system (Ubuntu, CentOS, etc.).
+
+ -  Install dependencies: Install the necessary dependencies like Python, PostgreSQL, Nginx, and Gunicorn.
+
+ -  Clone the repository: Clone the repository that contains your URL shortener code to the server.
+
+ -  Set up the environment: Create an environment file (.env) and set up your PostgreSQL database details and other necessary environment variables.
+
+ -  Install Python dependencies: Install the required Python packages using pip or pipenv.
+
+ -  Set up the database: Create the required tables and indexes in your PostgreSQL database using the provided migration scripts.
+
+ -  Test the application: Run the application locally and test its functionality.
+
+ -  Configure Nginx: Configure Nginx to act as a reverse proxy and serve the application.
+
+ -  Start the application: Use Gunicorn to start the application and make it available on the specified port.
+
+ -  Configure firewall: Open the necessary ports on the server firewall (usually 80 and 443 for HTTPS).
