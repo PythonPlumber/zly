@@ -34,3 +34,21 @@ Replace <app-name> with the name you want to give your app.
 heroku addons:create heroku-postgresql:hobby-dev
 ```
  
+- Update the DATABASE_URL environment variable in your Heroku app settings with your PostgreSQL database URL, which can be found on the Heroku dashboard.
+- Install the necessary dependencies for your Flask app using a requirements.txt file:
+   
+```
+   pip freeze > requirements.txt
+```
+
+- Commit all changes to your Git repository and push the code to Heroku using the following command:
+```
+git push heroku master
+```
+ 
+- Once the deployment is complete, you can open your app using the following command:
+```
+heroku open
+```
+
+- This will open your app in the default browser.
