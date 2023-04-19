@@ -2,6 +2,7 @@
 
 This is a simple web application that allows you to create short URLs. It's built using Python and PostgreSQL.
 
+
 ## Getting Started
 
 1. Set up a PostgreSQL database:
@@ -14,3 +15,22 @@ This is a simple web application that allows you to create short URLs. It's buil
    - Create a new Flask app and define two routes: one for the home page and one for the form submission.
    - In the form submission route, generate a unique short URL and store it along with the submitted long URL in the PostgreSQL database.
    - Return the short URL to the user in the form of a clickable link.
+
+
+### Deploy code on Heroku,
+
+- Create a Heroku account if you don't already have one.
+- Install the Heroku CLI on your local machine.
+- Open your terminal and navigate to your project directory.
+- Create a new Heroku app using the following command:
+```
+heroku create <app-name>
+```
+Replace <app-name> with the name you want to give your app.
+
+- Add PostgreSQL add-on to your Heroku app using the following command:
+   
+```
+heroku addons:create heroku-postgresql:hobby-dev
+```
+ 
