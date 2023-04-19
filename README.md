@@ -2,6 +2,13 @@
 
 This is a simple web application that allows you to create short URLs. It's built using Python and PostgreSQL.
 
+## About
+
+Welcome to the PythonPlumber URL Shortener project! This is an open source project developed by PythonPlumber to create a simple and efficient URL shortening service using Python, HTML, CSS, and PostgreSQL.
+
+The main goal of this project is to provide an easy-to-use and customizable URL shortening solution for users. By using this service, users can easily create short and memorable URLs for their long links.
+
+This project is completely open source and contributions are always welcome. If you're interested in contributing to the project, please read our contributing guidelines for more information.
 
 ## Getting Started
 
@@ -78,3 +85,8 @@ heroku open
  -  Start the application: Use Gunicorn to start the application and make it available on the specified port.
 
  -  Configure firewall: Open the necessary ports on the server firewall (usually 80 and 443 for HTTPS).
+   
+
+## License
+
+This project is licensed under the MIT License.
