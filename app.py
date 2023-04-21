@@ -3,14 +3,7 @@ from flask import Flask, render_template, request, redirect
 import psycopg2
 import string
 import random
-from dotenv import load_dotenv
-load_dotenv()
-
-DATABASE_URL = os.environ['DATABASE_URL']
-DB_USER = os.environ['DB_USER']
-DB_PASSWORD = os.environ['DB_PASSWORD']
-DB_HOST = os.environ['DB_HOST']
-DB_PORT = os.environ['DB_PORT']
+from psycopg2 import Error
 
 # Connect to PostgreSQL database
 conn = psycopg2.connect(
