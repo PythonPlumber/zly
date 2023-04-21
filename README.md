@@ -78,7 +78,9 @@ heroku open
  -  Set up the database: Create the required Mongo DB
 
  -  Test the application: Run the application locally and test its functionality.
-
+```
+$ python3 app.py
+```
  -  Configure Nginx: Configure Nginx to act as a reverse proxy and serve the application.
 
  -  Start the application: Use Gunicorn to start the application and make it available on the specified port.
