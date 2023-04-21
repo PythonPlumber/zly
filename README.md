@@ -17,7 +17,12 @@ This project is completely open source and contributions are always welcome. If 
 - Create a new project and cluster.
 - Add a new user to the database with appropriate read and write permissions.
 - Whitelist the IP address of the server where you will run the Python code and add 0.0.0.0 ip address to it.
-
+- after replace your MongoDB url With `your_mongodb`
+```
+app = Flask(__name__)
+client = MongoClient("your_mongodb")
+db = client.url_shortener
+```
 2. Set up the backend using Python:
    - Install Flask, a Python web framework, and the psycopg2 library, which allows you to interact with PostgreSQL from Python.
    - Create a new Flask app and define two routes: one for the home page and one for the form submission.
