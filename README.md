@@ -12,10 +12,11 @@ This project is completely open source and contributions are always welcome. If 
 
 ## Getting Started
 
-1. Set up a PostgreSQL database:
-   - Install PostgreSQL on your machine.
-   - Create a new database and a table to store the shortened URLs.
-   - and fill your database details in .env file
+1. Set up a mongoDB database:
+- Create a MongoDB Atlas account and log in to the dashboard.
+- Create a new project and cluster.
+- Add a new user to the database with appropriate read and write permissions.
+- Whitelist the IP address of the server where you will run the Python code and add 0.0.0.0 ip address to it.
 
 2. Set up the backend using Python:
    - Install Flask, a Python web framework, and the psycopg2 library, which allows you to interact with PostgreSQL from Python.
@@ -35,13 +36,6 @@ heroku create <app-name>
 ```
 Replace <app-name> with the name you want to give your app.
 
-- Add PostgreSQL add-on to your Heroku app using the following command:
-   
-```
-heroku addons:create heroku-postgresql:hobby-dev
-```
- 
-- Update the DATABASE_URL environment variable in your Heroku app settings with your PostgreSQL database URL, which can be found on the Heroku dashboard.
 - Install the necessary dependencies for your Flask app using a requirements.txt file:
    
 ```
@@ -72,11 +66,11 @@ heroku open
 
  -  Clone the repository: Clone the repository that contains your URL shortener code to the server.
 
- -  Set up the environment: Create an environment file (.env) and set up your PostgreSQL database details and other necessary environment variables.
+ -  Set up the environment
 
  -  Install Python dependencies: Install the required Python packages using pip or pipenv.
 
- -  Set up the database: Create the required tables and indexes in your PostgreSQL database using the provided migration scripts.
+ -  Set up the database: Create the required Mongo DB
 
  -  Test the application: Run the application locally and test its functionality.
 
