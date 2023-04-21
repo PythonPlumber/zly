@@ -24,9 +24,9 @@ client = MongoClient("your_mongodb")
 db = client.url_shortener
 ```
 2. Set up the backend using Python:
-   - Install Flask, a Python web framework, and the psycopg2 library, which allows you to interact with PostgreSQL from Python.
+   - Install Flask, a Python web framework, and the pymongo library, which allows you to interact with MongoDB from Python.
    - Create a new Flask app and define two routes: one for the home page and one for the form submission.
-   - In the form submission route, generate a unique short URL and store it along with the submitted long URL in the PostgreSQL database.
+   - In the form submission route, generate a unique short URL and store it along with the submitted long URL in the MongoDB database.
    - Return the short URL to the user in the form of a clickable link.
 
 
