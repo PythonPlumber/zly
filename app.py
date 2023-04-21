@@ -3,6 +3,8 @@ from flask import Flask, render_template, request, redirect
 import psycopg2
 import string
 import random
+from dotenv import load_dotenv
+load_dotenv()
 
 DATABASE_URL = os.environ['DATABASE_URL']
 DB_USER = os.environ['DB_USER']
