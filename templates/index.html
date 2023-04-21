@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>URL Shortener</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>URL Shortener</h1>
+        <form method="POST" action="{{ url_for('shorten') }}">
+            <input type="text" name="url" placeholder="Enter URL to shorten" required>
+            <button type="submit">Shorten</button>
+        </form>
+    </div>
+</body>
+</html>
