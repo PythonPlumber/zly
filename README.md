@@ -1,10 +1,10 @@
 # Short URL Website
 
-This is a simple web application that allows you to create short URLs. It's built using Python and PostgreSQL.
+This is a simple web application that allows you to create short URLs. It's built using Python and MongoDB.
 
 ## About
 
-Welcome to the PythonPlumber URL Shortener project! This is an open source project developed by PythonPlumber to create a simple and efficient URL shortening service using Python, HTML, CSS, and PostgreSQL.
+Welcome to the PythonPlumber URL Shortener project! This is an open source project developed by PythonPlumber to create a simple and efficient URL shortening service using Python, HTML, CSS, and MongoDB.
 
 The main goal of this project is to provide an easy-to-use and customizable URL shortening solution for users. By using this service, users can easily create short and memorable URLs for their long links.
 
