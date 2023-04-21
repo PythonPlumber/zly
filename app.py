@@ -7,11 +7,11 @@ from psycopg2 import Error
 
 # Connect to PostgreSQL database
 conn = psycopg2.connect(
-    dbname=DB_NAME,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    port=DB_PORT
+    dbname="REPLACE",
+    user="REPLACE",
+    password="REPLACE",
+    host="REPLACE",
+    port="REPLACE"
 )
 
 app = Flask(__name__)
