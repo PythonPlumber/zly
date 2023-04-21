@@ -5,16 +5,9 @@ import string
 import random
 from psycopg2 import Error
 
-# Connect to PostgreSQL database
-conn = psycopg2.connect(
-    dbname="REPLACE",
-    user="REPLACE",
-    password="REPLACE",
-    host="REPLACE",
-    port="REPLACE"
-)
-
 app = Flask(__name__)
+
+# Connect to PostgreSQL database
 
 conn = psycopg2.connect(database="dbname", user="user", password="password", host="host", port="port")
 cur = conn.cursor()
