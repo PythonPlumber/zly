@@ -1,42 +1,54 @@
-import os
-from flask import Flask, render_template, request, redirect
-import psycopg2
+from flask import Flask, render_template, request, redirect, url_for
+from pymongo import MongoClient
 import string
 import random
-from psycopg2 import Error
+import validators
 
 app = Flask(__name__)
+client = MongoClient("your_mongodb")
+db = client.url_shortener
 
-# Connect to PostgreSQL database
+# Generate a random short code
+def generate_short_code():
+    length = 6
+    chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
+    while True:
+        code = ''.join(random.choice(chars) for _ in range(length))
+        if not db.urls.find_one({"code": code}):
+            return code
 
-conn = psycopg2.connect(database="dbname", user="user", password="password", host="host", port="port")
-cur = conn.cursor()
-
-def generate_short_url():
-    """Generate a random 5-character string for the short URL"""
-    letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for i in range(5))
-
+# Home page
 @app.route('/')
 def home():
     return render_template('index.html')
 
-@app.route('/', methods=['POST'])
-def shorten_url():
-    long_url = request.form['long_url']
-    short_url = generate_short_url()
+# Create a new shortened URL
+@app.route('/shorten', methods=['POST'])
+def shorten():
+    original_url = request.form['url']
+    if not validators.url(original_url):
+        return render_template('error.html', message='Invalid URL')
+    existing_url = db.urls.find_one({"original": original_url})
+    if existing_url:
+        return render_template('result.html', code=existing_url['code'])
+    else:
+        code = generate_short_code()
+        db.urls.insert_one({"original": original_url, "code": code})
+        return render_template('result.html', code=code)
 
-    cur.execute("INSERT INTO urls (short_url, long_url) VALUES (%s, %s)", (short_url, long_url))
-    conn.commit()
+# Redirect to original URL
+@app.route('/<code>')
+def redirect_to_url(code):
+    url = db.urls.find_one({"code": code})
+    if url:
+        return redirect(url['original'])
+    else:
+        return render_template('error.html', message='URL not found')
 
-    return render_template('index.html', short_url=short_url)
-
-@app.route('/<short_url>')
-def redirect_to_long_url(short_url):
-    cur.execute("SELECT long_url FROM urls WHERE short_url = %s", (short_url,))
-    long_url = cur.fetchone()[0]
-
-    return redirect(long_url)
+# 404 page
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
