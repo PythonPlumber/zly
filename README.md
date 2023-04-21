@@ -17,7 +17,7 @@ This project is completely open source and contributions are always welcome. If 
 - Create a new project and cluster.
 - Add a new user to the database with appropriate read and write permissions.
 - Whitelist the IP address of the server where you will run the Python code and add 0.0.0.0 ip address to it.
-- after replace your MongoDB url With `your_mongodb`
+- after replace your MongoDB url With `your_mongodb` ( in app.py )
 ```
 app = Flask(__name__)
 client = MongoClient("your_mongodb")
