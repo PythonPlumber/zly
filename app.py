@@ -3,6 +3,7 @@ from pymongo import MongoClient
 import string
 import random
 import validators
+import os
 
 app = Flask(__name__)
 client = MongoClient("your_mongodb")
