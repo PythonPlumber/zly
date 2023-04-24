@@ -31,8 +31,9 @@ db = client.url_shortener
    - In the form submission route, generate a unique short URL and store it along with the submitted long URL in the MongoDB database.
    - Return the short URL to the user in the form of a clickable link.
 
-### Develoy 
-1. <b>Develoy on render.com</b>
+### deploy your Site
+
+1. <b>deploy on render.com</b>
 
 -    Sign up for a Render account if you haven't already.
 -   Create a new web service and select "From Repo" as the deployment method.
