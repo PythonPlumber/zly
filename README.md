@@ -31,8 +31,23 @@ db = client.url_shortener
    - In the form submission route, generate a unique short URL and store it along with the submitted long URL in the MongoDB database.
    - Return the short URL to the user in the form of a clickable link.
 
+### Develoy 
+1. <b>Develoy on render.com</b>
 
-### Deploy code on Heroku,
+-    Sign up for a Render account if you haven't already.
+-   Create a new web service and select "From Repo" as the deployment method.
+-   Choose the Git repository where your Flask app is located.
+-   Select the branch you want to deploy.
+-   Choose the "Web Service" as the service type.
+-   Configure your app by selecting the appropriate language, build command, and start command.
+    start command is :-
+    ```
+    gunicorn app:app
+    ```
+-   Once you've configured everything, click "Create Service".
+-   Wait for the build and deployment to finish, then open the URL provided by Render to access your app.
+    
+2. <b>Deploy code on Heroku</b>,
 
 - Create a Heroku account if you don't already have one.
 - Install the Heroku CLI on your local machine.
@@ -63,13 +78,13 @@ heroku open
    
    
    
-### deploy your advance URL shortener code on a VPS,
+3. <b>deploy your advance URL shortener code on a VPS</b>,
    
  -  Choose a VPS provider: You can choose any VPS provider like DigitalOcean, Linode, Vultr, or Amazon AWS, depending on your requirements.
 
  -  Set up a server: After choosing a provider, create a server instance with your preferred operating system (Ubuntu, CentOS, etc.).
 
- -  Install dependencies: Install the necessary dependencies like Python, PostgreSQL, Nginx, and Gunicorn.
+ -  Install dependencies: Install the necessary dependencies like Python, MongoDB, Nginx, and Gunicorn.
 
  -  Clone the repository: Clone the repository that contains your URL shortener code to the server.
 
