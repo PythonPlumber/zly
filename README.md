@@ -31,9 +31,9 @@ db = client.url_shortener
    - In the form submission route, generate a unique short URL and store it along with the submitted long URL in the MongoDB database.
    - Return the short URL to the user in the form of a clickable link.
 
-### deploy your Site
+## deploy your Site
 
-1. <b>deploy on render.com</b>
+### 1. <b>deploy on render.com</b>
 
 -    Sign up for a Render account if you haven't already.
 -   Create a new web service and select "From Repo" as the deployment method.
@@ -48,7 +48,7 @@ db = client.url_shortener
 -   Once you've configured everything, click "Create Service".
 -   Wait for the build and deployment to finish, then open the URL provided by Render to access your app.
     
-2. <b>Deploy code on Heroku</b>,
+### 2. <b>Deploy code on Heroku</b>,
 
 - Create a Heroku account if you don't already have one.
 - Install the Heroku CLI on your local machine.
@@ -79,7 +79,7 @@ heroku open
    
    
    
-3. <b>deploy your advance URL shortener code on a VPS</b>,
+### 3. <b>deploy your advance URL shortener code on a VPS</b>,
    
  -  Choose a VPS provider: You can choose any VPS provider like DigitalOcean, Linode, Vultr, or Amazon AWS, depending on your requirements.
 
