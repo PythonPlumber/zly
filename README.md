@@ -1,4 +1,4 @@
-# Short URL Website
+# Short URL Website 🔗
 
 This is a simple web application that allows you to create short URLs. It's built using Python and MongoDB. 
 
@@ -32,7 +32,7 @@ db = client.url_shortener
    - Return the short URL to the user in the form of a clickable link.
 
 ## deploy your Site
-
+There are a few methods you can use here (for your own host). I tell you that render.com is good. However, use whichever one you like 👍
 ### 1. <b>deploy on render.com</b>
 
 -    Sign up for a Render account if you haven't already.
