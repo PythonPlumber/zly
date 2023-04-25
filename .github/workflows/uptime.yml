@@ -1,5 +1,7 @@
+name: 🚀 Uptime
+
 on:
-  schedule:
+ schedule:
     - cron: '*/5 * * * *'
 
 jobs:
