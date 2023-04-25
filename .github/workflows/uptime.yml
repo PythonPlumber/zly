@@ -2,7 +2,7 @@ name: 🚀 Uptime
 
 on:
  schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/2 * * * *'
 
 jobs:
   ping_site:
