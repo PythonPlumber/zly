@@ -22,7 +22,7 @@ def generate_short_code():
 @app.route('/')
 def home():
     url_count = db.urls.count_documents({})
-    return render_template('index.html', , url_count=url_count)
+    return render_template('index.html', url_count=url_count)
 
 # Create a new shortened URL
 @app.route('/shorten', methods=['POST'])
