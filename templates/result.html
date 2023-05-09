@@ -2,11 +2,14 @@
 <html>
   <head>
     <title>URL Shortener - Result</title>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+    </style>
   </head>
   <body>
     <div class="container">
@@ -15,6 +18,16 @@
       <a href="{{ url_for('redirect_to_url', code=code) }}"
         >{{ request.host_url }}{{ code }}</a
       >
+      <br>
+      <br>
+      <div class="social-buttons">
+        <a href="https://twitter.com/intent/tweet?text={{ request.host_url }}{{ code }}" target="_blank"><img src="{{ url_for('static', filename='twitter.png') }}" alt="Twitter"></a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.host_url }}{{ code }}" target="_blank"><img src="{{ url_for('static', filename='facebook.png') }}" alt="Facebook"></a>
+        <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.host_url }}{{ code }}" target="_blank"><img src="{{ url_for('static', filename='linkedin.png') }}" alt="LinkedIn"></a>
+        <a href="https://wa.me/?text={{ request.host_url }}{{ code }}" target="_blank"><img src="{{ url_for('static', filename='whatsapp.png') }}" alt="WhatsApp"></a>
+        <a href="https://discord.com/channels/@me" target="_blank"><img src="{{ url_for('static', filename='discord.png') }}" alt="Discord"></a>
+        <a href="https://t.me/share/url?url={{ request.host_url }}{{ code }}" target="_blank"><img src="{{ url_for('static', filename='telegram.png') }}" alt="Telegram"></a>
+      </div>
     </div>
   </body>
 </html>
