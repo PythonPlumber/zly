@@ -1,43 +1,165 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ZLY - URL Shortener</title>
+    <title>ZLY</title>
     <link
       rel="icon"
       href="https://cdn.glitch.global/bd5b06bb-74cc-4ef7-90cb-e7cc561ea9ed/thumbnails%2F1828108.png"
     />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f8f8;
+        margin: 0;
+        padding: 0;
+        transition: background-color 0.3s ease;
+      }
+
+      .navbar {
+        background-color: #007bff;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+      }
+
+      .navbar a {
+        color: #fff;
+        text-decoration: none;
+        margin-right: 20px;
+      }
+
+      .navbar .logo {
+        width: 50px;
+        height: 50px;
+        margin-right: 10px;
+      }
+
+      .navbar .mode-toggle {
+        display: flex;
+        align-items: center;
+      }
+
+      .navbar .mode-toggle input[type="checkbox"] {
+        display: none;
+      }
+
+      .navbar .mode-toggle label {
+        display: inline-block;
+        width: 40px;
+        height: 24px;
+        border-radius: 12px;
+        background-color: #ddd;
+        position: relative;
+        cursor: pointer;
+      }
+
+      .navbar .mode-toggle label:after {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: #fff;
+        top: 3px;
+        left: 3px;
+        transition: transform 0.3s ease;
+      }
+
+      .navbar .mode-toggle input[type="checkbox"]:checked + label {
+        background-color: #000;
+      }
+
+      .navbar .mode-toggle input[type="checkbox"]:checked + label:after {
+        transform: translateX(16px);
+      }
+
+      .container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+
+      form {
+        margin-top: 20px;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+
+      label {
+        display: block;
+        margin-top: 10px;
+      }
+
+      button[type="submit"] {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      button[type="submit"]:hover {
+        background-color: #0056b3;
+      }
+
+      p {
+        text-align: center;
+        color: #777;
+        margin-top: 30px;
+      }
+
+      .info {
+        margin-top: 30px;
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
-    <center>
-      <div class="container">
-        <h1>URL Shortener</h1>
-        <form method="POST" action="{{ url_for('shorten') }}">
-          <input
-            type="text"
-            name="url"
-            placeholder="Enter URL to shorten"
-            required
-          />
-          <button type="submit">Shorten</button>
-        </form>
+    <div class="navbar">
+      <a href="#">
+        <img class="logo" src="your_logo_url.png" alt="Logo">
+      </a>
+      <div class="mode-toggle">
+        <input type="checkbox" id="mode-toggle" />
+        <label for="mode-toggle"></label>
       </div>
-      <p>{{ url_count }} URLs registered</p>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
+    </div>
+    <div class="container">
+      <h1>URL Shortener</h1>
+      <form method="POST" action="{{ url_for('shorten') }}">
+        <br>
+        <input type="text" name="url" placeholder="Enter URL to shorten" required />
+        <br>
+        <label>
+          <input type="checkbox" name="robot_confirmation" required />
+          I'm not a robot
+        </label>
+        <br>
+        <button type="submit">Shorten</button>
+      </form>
+    </div>
+    <p>{{ url_count }} URLs registered</p>
+    <div class="info">
       <p>
         Shorten your URLs in just one click with this free and open-source URL
         shortener codebase. Written in Python and using MongoDB as the backend
@@ -51,19 +173,25 @@
         and distribute this code as you see fit. So why not give it a try and
         see how it can simplify your URL shortening needs?
       </p>
-      <a href="https://github.com/PythonPlumber/url-shortener"><img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white"></a>
-      <img
-        src="https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white"
-      />
-      <img
-        src="https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white"
-      /><img
-        src="https://img.shields.io/badge/Render-%46E3B7.svg?style=for-the-badge&logo=render&logoColor=white"
-      />
-      <br />
-      <img
-        src="https://cdn.glitch.global/bd5b06bb-74cc-4ef7-90cb-e7cc561ea9ed/666e8f9a-c926-48ef-aa35-2e04dc3e7df0.image.png"
-      />
-    </center>
+      <a href="https://github.com/PythonPlumber/url-shortener">
+        <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" alt="GitHub repository">
+      </a>
+      <img src="https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white" alt="Flask">
+      <img src="https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
+      <img src="https://img.shields.io/badge/Render-%46E3B7.svg?style=for-the-badge&logo=render&logoColor=white" alt="Render">
+    </div>
+
+    <script>
+      const modeToggle = document.getElementById('mode-toggle');
+      const body = document.body;
+
+      modeToggle.addEventListener('change', () => {
+        if (modeToggle.checked) {
+          body.classList.add('dark-mode');
+        } else {
+          body.classList.remove('dark-mode');
+        }
+      });
+    </script>
   </body>
 </html>
