@@ -6,7 +6,7 @@ import validators
 import os
 
 app = Flask(__name__)
-client = MongoClient("your_mongodb")
+client = MongoClient("mongodb+srv://zlypythondev:icqErgsCrBArsnxM@zly.vr6f0nd.mongodb.net/?retryWrites=true&w=majority")
 db = client.url_shortener
 
 # Generate a random short code
@@ -27,6 +27,11 @@ def home():
 # Create a new shortened URL
 @app.route('/shorten', methods=['POST'])
 def shorten():
+    robot_confirmation = request.form.get('robot_confirmation')
+    if not robot_confirmation:
+        return render_template('error.html', message='Please confirm you are not a robot.')
+
+    # Rest of your code for URL shortening
     original_url = request.form['url']
     if not validators.url(original_url):
         return render_template('error.html', message='Invalid URL')
