@@ -22,7 +22,11 @@ def generate_short_code():
 @app.route('/')
 def home():
     url_count = db.urls.count_documents({})
-    return render_template('index.html', url_count=url_count)
+    # Increase visitor counter
+    db.stats.update_one({}, {"$inc": {"visitors": 1}}, upsert=True)
+    stats = db.stats.find_one()
+    visitors = stats['visitors']
+    return render_template('index.html', url_count=url_count, visitors=visitors)
 
 # Create a new shortened URL
 @app.route('/shorten', methods=['POST'])
