@@ -1,16 +1,16 @@
-# Mega Hilarious URL Shrinker 😄
+# Mega Hilarious URL Shrinker <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a5/512.gif" alt="💥" width="32" height="32">
 
 Welcome to the Mega Hilarious URL Shrinker project! Get ready for a laughter-filled experience like no other with the one and only ZLY (Zany Link Yanker) - the ultimate URL shortener that adds a dash of hilarity to every link!
 
-## About
+## About <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a1/512.gif" alt="💡" width="32" height="32"
 
-Prepare yourself for non-stop laughter with the Mega Hilarious URL Shrinker, affectionately known as ZLY. This open-source project, developed by the comedic masterminds at PythonPlumber, is here to revolutionize the world of link shortening. Built with Python, HTML, CSS, and MongoDB, ZLY aims to bring a smile to your face while making your URLs shorter than a stand-up comedian's punchline.
+Prepare yourself for non-stop laughter with the Mega Hilarious URL Shrinker, affectionately known as ZLY. This open-source project, developed by the comedic masterminds at PythonPlumber, is here to revolutionize the world of link shortening. Built with <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f40d/512.gif" alt="🐍" width="15" height="15"> Python, HTML, CSS, and MongoDB, ZLY aims to bring a smile to your face while making your URLs shorter than a stand-up comedian's punchline.
 
 Our mission is simple: to provide you with the funniest, easiest-to-use, and most customizable URL shortening service imaginable. Say goodbye to boring, long links and say hello to side-splittingly hilarious short URLs!
 
 Contributions to this project are highly encouraged! If you have any jokes, puns, or comedic ideas to enhance the hilarity of ZLY, we'd love to hear them. Check out our contributing guidelines for more information on how you can join the laughter brigade.
 
-## Getting Started
+## Getting Started <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f31f/512.gif" alt="🌟" width="32" height="32">
 
 1. Set up a MongoDB database:
    - Create a MongoDB Atlas account and prepare for some seriously funny data storage.
@@ -95,6 +95,6 @@ $ python3 app.py
  -  Configure firewall: Open the necessary ports on the server firewall (usually 80 and 443 for HTTPS).
    
 
-## License
+## License <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.gif" alt="😀" width="15" height="15">
 
 This project is licensed under the MIT License.
