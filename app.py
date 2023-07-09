@@ -8,6 +8,7 @@ import os
 app = Flask(__name__)
 mongo_url = os.getenv("MONGODB_URL")
 client = MongoClient(mongo_url)
+db = client.url_shortener
 
 # Generate a random short code
 def generate_short_code():
