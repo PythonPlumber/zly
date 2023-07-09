@@ -6,8 +6,8 @@ import validators
 import os
 
 app = Flask(__name__)
-client = MongoClient("mongodb+srv://zlyev:yourpassM@zly.vr6f0nd.mongodb.net/?retryWrites=true&w=majory")
-db = client.url_shortener
+mongo_url = os.getenv("MONGODB_URL")
+client = MongoClient(mongo_url)
 
 # Generate a random short code
 def generate_short_code():
