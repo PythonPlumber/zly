@@ -17,12 +17,7 @@ Contributions to this project are highly encouraged! If you have any jokes, puns
    - Create a new project and cluster that will serve as the comedic hub for ZLY.
    - Add a new user to the database, ensuring they have the read and write permissions necessary to unleash the laughter.
    - Don't forget to whitelist the IP address of the server where you'll be running the Python code. Laughter has no boundaries, after all!
-   - Replace `your_mongodb` in `app.py` with the connection URL to your MongoDB database:
-     ```python
-     app = Flask(__name__)
-     client = MongoClient("your_mongodb")
-     db = client.url_shortener
-     ```
+   - Add MongoDB Url in env
 
 2. Set up the backend using Python:
    - Grab your funniest Python hat and install Flask, the jester of Python web frameworks, along with the pymongo library, which will help us interact with MongoDB.
