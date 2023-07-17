@@ -81,6 +81,7 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
-    # Schedule deletion of expired URLs every day at midnight
     delete_expired_urls()  # Delete expired URLs when the application starts
+    schedule_deletion()  # Schedule deletion of expired URLs to run periodically
     app.run(debug=True)
+
