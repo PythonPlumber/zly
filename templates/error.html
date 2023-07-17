@@ -2,11 +2,36 @@
 <html>
   <head>
     <title>ZLY - Error</title>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #1f1f1f;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 500px;
+        padding: 20px;
+        background-color: #363636;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 24px;
+        color: #fff;
+      }
+
+      p {
+        font-size: 18px;
+        color: #fff;
+      }
+    </style>
   </head>
   <body>
     <div class="container">
