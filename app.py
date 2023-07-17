@@ -15,7 +15,7 @@ db = client.url_shortener
 
 # Generate a random short code
 def generate_short_code():
-    length = 10
+    length = 4
     chars = string.printable.strip()
     while True:
         code = ''.join(random.choice(chars) for _ in range(length))
