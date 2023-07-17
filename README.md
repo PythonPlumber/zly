@@ -2,6 +2,10 @@
 
 Welcome to the Mega Hilarious URL Shrinker project! Get ready for a laughter-filled experience like no other with the one and only ZLY (Zany Link Yanker) - the ultimate URL shortener that adds a dash of hilarity to every link!
 
+- zly.uk.to  - Main Site
+- zly.my.to  - 2nd site
+- zly.0rg.us - 3rd site
+
 ## About <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a1/512.gif" alt="💡" width="32" height="32">
 
 Prepare yourself for non-stop laughter with the Mega Hilarious URL Shrinker, affectionately known as ZLY. This open-source project, developed by the comedic masterminds at PythonPlumber, is here to revolutionize the world of link shortening. Built with <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f40d/512.gif" alt="🐍" width="15" height="15"> Python, HTML, CSS, and MongoDB, ZLY aims to bring a smile to your face while making your URLs shorter than a stand-up comedian's punchline.
