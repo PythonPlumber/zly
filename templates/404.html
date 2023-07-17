@@ -12,6 +12,9 @@
       .container {
         text-align: center;
         margin-top: 50px;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fade-in 0.5s ease-out forwards;
       }
       h1 {
         font-size: 36px;
@@ -23,6 +26,21 @@
       }
       a {
         color: #0099cc;
+        text-decoration: none;
+        transition: color 0.3s ease-in-out;
+      }
+      a:hover {
+        color: #ff6600;
+      }
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
     </style>
   </head>
@@ -30,7 +48,7 @@
     <div class="container">
       <h1>404 Error</h1>
       <p>The page you requested could not be found.</p>
-      <p>Please check the URL what you're looking for.</p>
+      <p>Please check the URL you're looking for.</p>
       <a href="/">Return to homepage</a>
     </div>
   </body>
