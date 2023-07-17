@@ -2,7 +2,7 @@
 
 Welcome to the Mega Hilarious URL Shrinker project! Get ready for a laughter-filled experience like no other with the one and only ZLY (Zany Link Yanker) - the ultimate URL shortener that adds a dash of hilarity to every link!
 
-- zly.uk.to  - Main Site
+- (zly.uk.to)[zly.uk.to]  - Main Site
 - zly.my.to  - 2nd site
 - zly.0rg.us - 3rd site
 
