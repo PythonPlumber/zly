@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect
 from pymongo import MongoClient
 import string
 import random
 import validators
 import os
+import schedule
+import time
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 mongo_url = os.getenv("MONGODB_URL")
@@ -19,6 +22,21 @@ def generate_short_code():
         if not db.urls.find_one({"code": code}):
             return code
 
+# Delete URLs that are 110 days old
+def delete_expired_urls():
+    expiration_date = datetime.now() - timedelta(days=110)
+    db.urls.delete_many({"created_at": {"$lt": expiration_date}})
+
+
+def schedule_deletion():
+    # Schedule deletion of expired URLs
+    schedule.every().day.at("00:00").do(delete_expired_urls)
+
+    # Run the scheduled jobs
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+        
 # Home page
 @app.route('/')
 def home():
@@ -45,7 +63,7 @@ def shorten():
         return render_template('result.html', code=existing_url['code'])
     else:
         code = generate_short_code()
-        db.urls.insert_one({"original": original_url, "code": code})
+        db.urls.insert_one({"original": original_url, "code": code, "created_at": datetime.now()})
         return render_template('result.html', code=code)
 
 # Redirect to original URL
@@ -63,4 +81,6 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
+    # Schedule deletion of expired URLs every day at midnight
+    delete_expired_urls()  # Delete expired URLs when the application starts
     app.run(debug=True)
