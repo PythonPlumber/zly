@@ -41,9 +41,31 @@
         margin-right: 10px;
       }
 
+      .navbar .logo-text {
+        font-size: 20px;
+        font-weight: bold;
+      }
+
+      .navbar .buttons {
+        display: flex;
+      }
+
+      .navbar .buttons a {
+        margin-right: 10px;
+        padding: 5px 10px;
+        border-radius: 5px;
+        color: #fff;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+      }
+
+      .navbar .buttons a:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
       .container {
         max-width: 500px;
-        margin: 50px auto;
+        margin: 100px auto 20px;
         padding: 20px;
         background-color: #363636;
         border-radius: 5px;
@@ -99,8 +121,75 @@
 
       .info {
         margin-top: 30px;
-        text-align: center;
+        padding: 20px;
         color: #fff;
+        font-family: monospace;
+        text-align: center;
+      }
+      
+      .footer {
+        color: #fff;
+        padding: 10px;
+        text-align: center;
+        font-family: monospace;
+      }
+
+      /* Media Queries */
+      @media (max-width: 768px) {
+        .container {
+          max-width: 90%;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .navbar {
+          padding: 5px;
+        }
+
+        .navbar .logo-text {
+          font-size: 16px;
+        }
+
+        .navbar .buttons a {
+          margin-right: 5px;
+          padding: 3px 8px;
+          font-size: 12px;
+        }
+
+        .container {
+          margin: 50px auto 10px;
+          padding: 15px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        input[type="text"] {
+          font-size: 14px;
+        }
+
+        label {
+          font-size: 14px;
+        }
+
+        button[type="submit"] {
+          font-size: 14px;
+        }
+
+        p {
+          font-size: 14px;
+          margin-top: 20px;
+        }
+
+        .info {
+          margin-top: 20px;
+          padding: 15px;
+        }
+
+        .footer {
+          padding: 5px;
+        }
       }
     </style>
   </head>
@@ -112,7 +201,12 @@
           src="https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif"
           alt="Logo"
         />
+        <span class="logo-text">ZLY</span>
       </a>
+      <div class="buttons">
+        <a href="https://github.com/PythonPlumber/url-shortener">Repo</a>
+        <a href="#">About Us</a>
+      </div>
     </div>
     <div class="container">
       <h1>URL Shortener</h1>
@@ -166,6 +260,9 @@
         src="https://img.shields.io/badge/Render-%46E3B7.svg?style=for-the-badge&logo=render&logoColor=white"
         alt="Render"
       />
+    </div>
+    <div class="footer">
+      <p>&copy; 2023 ZLY. All rights reserved.</p>
     </div>
   </body>
 </html>
