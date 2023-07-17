@@ -4,7 +4,15 @@
     <title>ZLY</title>
     <link
       rel="icon"
-      href="https://cdn.glitch.global/bd5b06bb-74cc-4ef7-90cb-e7cc561ea9ed/thumbnails%2F1828108.png"
+      href="https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
     />
     <style>
       body {
@@ -12,12 +20,52 @@
         justify-content: center;
         align-items: center;
         height: 100vh;
+        font-family: 'Roboto', sans-serif;
+        background-color: #1f1f1f;
+        margin: 0;
+        padding: 0;
+        transition: background-color 0.3s ease;
+      }
+
+      .container {
+        max-width: 500px;
+        padding: 20px;
+        background-color: #363636;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        text-align: center;
+      }
+
+      h1 {
+        color: #fff;
+      }
+
+      p {
+        color: #fff;
+      }
+
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+
+      .social-buttons {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .social-buttons a {
+        display: inline-block;
+        margin: 0 10px;
+        color: #fff;
+        font-size: 24px;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>URL Shortener</h1>
+      <h1>ZLY</h1>
       <p>Your shortened URL is:</p>
       <a href="{{ url_for('redirect_to_url', code=code) }}"
         >{{ request.host_url }}{{ code }}</a
@@ -26,15 +74,16 @@
       <br>
       <br>
       <br>
-      <h3>Share You Link os ,</h3>
+      <h3>Share You Link on ,</h3>
       <div class="social-buttons">
-        <a href="https://twitter.com/intent/tweet?text={{ request.host_url }}{{ code }}" target="_blank"><img src="{{ url_for('static', filename='twitter.png') }}" alt="Twitter"></a>
-        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.host_url }}{{ code }}" target="_blank"><img src="{{ url_for('static', filename='facebook.png') }}" alt="Facebook"></a>
-        <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.host_url }}{{ code }}" target="_blank"><img src="{{ url_for('static', filename='linkedin.png') }}" alt="LinkedIn"></a>
-        <a href="https://wa.me/?text={{ request.host_url }}{{ code }}" target="_blank"><img src="{{ url_for('static', filename='whatsapp.png') }}" alt="WhatsApp"></a>
-        <a href="https://discord.com/channels/@me" target="_blank"><img src="{{ url_for('static', filename='discord.png') }}" alt="Discord"></a>
-        <a href="https://t.me/share/url?url={{ request.host_url }}{{ code }}" target="_blank"><img src="{{ url_for('static', filename='telegram.png') }}" alt="Telegram"></a>
+        <a href="https://twitter.com/intent/tweet?text={{ request.host_url }}{{ code }}" target="_blank"><i class="fab fa-twitter"></i></a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.host_url }}{{ code }}" target="_blank"><i class="fab fa-facebook"></i></a>
+        <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.host_url }}{{ code }}" target="_blank"><i class="fab fa-linkedin"></i></a>
+        <a href="https://wa.me/?text={{ request.host_url }}{{ code }}" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://discord.com/channels/@me" target="_blank"><i class="fab fa-discord"></i></a>
+        <a href="https://t.me/share/url?url={{ request.host_url }}{{ code }}" target="_blank"><i class="fab fa-telegram"></i></a>
       </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
   </body>
 </html>
