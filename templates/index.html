@@ -7,6 +7,7 @@
       href="https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif"
     />
     <style>
+      /* Common styles for all screens */
       body {
         font-family: Arial, sans-serif;
         background-color: #1f1f1f;
@@ -48,10 +49,12 @@
 
       .navbar .buttons {
         display: flex;
+        align-items: center;
+        margin-left: auto;
       }
 
       .navbar .buttons a {
-        margin-right: 10px;
+        margin-left: 10px;
         padding: 5px 10px;
         border-radius: 5px;
         color: #fff;
@@ -126,7 +129,7 @@
         font-family: monospace;
         text-align: center;
       }
-      
+
       .footer {
         color: #fff;
         padding: 10px;
@@ -144,17 +147,16 @@
 
       @media (max-width: 480px) {
         .navbar {
-          padding: 5px;
+          flex-direction: column;
+          align-items: center;
         }
 
         .navbar .logo-text {
           font-size: 16px;
         }
 
-        .navbar .buttons a {
-          margin-right: 5px;
-          padding: 3px 8px;
-          font-size: 12px;
+        .navbar .buttons {
+          margin-top: 10px;
         }
 
         .container {
@@ -211,7 +213,7 @@
     </div>
     <div class="container">
       <h1>URL Shortener</h1>
-      <form method="POST" action="{{ url_for('shorten') }}">
+      <form method="POST" action="#">
         <br />
         <input
           type="text"
