@@ -75,6 +75,37 @@ def redirect_to_url(code):
     else:
         return render_template('error.html', message='URL not found')
 
+
+@app.route('/stats')
+def stats_json():
+    stats = db.stats.find_one()
+    if stats:
+        # Calculate uptime
+        uptime = int(time.time() - stats['start_time'])
+        stats['uptime'] = uptime
+
+        # Calculate database percentage
+        total_urls = db.urls.count_documents({})
+        database_percentage = 0
+        if total_urls > 0:
+            expired_urls = db.urls.count_documents({"created_at": {"$lt": datetime.now() - timedelta(days=110)}})
+            database_percentage = (expired_urls / total_urls) * 100
+        stats['database_percentage'] = database_percentage
+
+        # Calculate system usage
+        cpu_percent = psutil.cpu_percent()
+        memory_percent = psutil.virtual_memory().percent
+        disk_percent = psutil.disk_usage('/').percent
+        stats['system_usage'] = {
+            'cpu_percent': cpu_percent,
+            'memory_percent': memory_percent,
+            'disk_percent': disk_percent
+        }
+
+        return jsonify(stats)
+    else:
+        return jsonify({"message": "No statistics found"})
+        
 # 404 page
 @app.errorhandler(404)
 def page_not_found(e):
