@@ -37,7 +37,7 @@ def schedule_deletion():
     while True:
         schedule.run_pending()
         time.sleep(1)
-        
+
 # Home page
 @app.route('/')
 def home():
