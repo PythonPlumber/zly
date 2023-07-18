@@ -6,6 +6,7 @@ import validators
 import os
 import schedule
 import time
+import requests
 from datetime import datetime, timedelta
 import psutil
 
@@ -28,16 +29,27 @@ def delete_expired_urls():
     expiration_date = datetime.now() - timedelta(days=110)
     db.urls.delete_many({"created_at": {"$lt": expiration_date}})
 
+# Your new cron job function
+def cron_job_function():
+    # Make an HTTP request to the cron job URL
+    response = requests.get("http://zly.uk.to/")
+    if response.status_code == 200:
+        print("Cron job executed successfully")
+    else:
+        print("Cron job failed")
 
 def schedule_deletion():
     # Schedule deletion of expired URLs
     schedule.every().day.at("00:00").do(delete_expired_urls)
 
+    # Schedule your new cron job function every 10 minutes
+    schedule.every(10).minutes.do(cron_job_function)
+
     # Run the scheduled jobs
     while True:
         schedule.run_pending()
         time.sleep(1)
-
+        
 # Home page
 @app.route('/')
 def home():
@@ -75,7 +87,6 @@ def redirect_to_url(code):
         return redirect(url['original'])
     else:
         return render_template('error.html', message='URL not found')
-
 
 # Retrieve statistics in JSON format
 @app.route('/stats')
@@ -115,5 +126,5 @@ def page_not_found(e):
 
 if __name__ == '__main__':
     delete_expired_urls()  # Delete expired URLs when the application starts
-    schedule_deletion()  # Schedule deletion of expired URLs to run periodically
+    schedule_deletion()  # Schedule deletion of expired URLs and your cron job function
     app.run(debug=True)
