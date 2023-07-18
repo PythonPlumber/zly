@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 from pymongo import MongoClient
 import string
 import random
@@ -77,6 +77,7 @@ def redirect_to_url(code):
         return render_template('error.html', message='URL not found')
 
 
+# Retrieve statistics in JSON format
 @app.route('/stats')
 def stats_json():
     stats = db.stats.find_one()
@@ -106,7 +107,7 @@ def stats_json():
         return jsonify(stats)
     else:
         return jsonify({"message": "No statistics found"})
-        
+
 # 404 page
 @app.errorhandler(404)
 def page_not_found(e):
@@ -116,4 +117,3 @@ if __name__ == '__main__':
     delete_expired_urls()  # Delete expired URLs when the application starts
     schedule_deletion()  # Schedule deletion of expired URLs to run periodically
     app.run(debug=True)
-
