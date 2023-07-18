@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 from pymongo import MongoClient
 import string
 import random
@@ -6,7 +6,9 @@ import validators
 import os
 import schedule
 import time
+import requests
 from datetime import datetime, timedelta
+import psutil
 
 app = Flask(__name__)
 mongo_url = os.getenv("MONGODB_URL")
@@ -27,10 +29,21 @@ def delete_expired_urls():
     expiration_date = datetime.now() - timedelta(days=110)
     db.urls.delete_many({"created_at": {"$lt": expiration_date}})
 
+# Your new cron job function
+def cron_job_function():
+    # Make an HTTP request to the cron job URL
+    response = requests.get("http://zly.uk.to/")
+    if response.status_code == 200:
+        print("Cron job executed successfully")
+    else:
+        print("Cron job failed")
 
 def schedule_deletion():
     # Schedule deletion of expired URLs
     schedule.every().day.at("00:00").do(delete_expired_urls)
+
+    # Schedule your new cron job function every 10 minutes
+    schedule.every(10).minutes.do(cron_job_function)
 
     # Run the scheduled jobs
     while True:
@@ -75,6 +88,37 @@ def redirect_to_url(code):
     else:
         return render_template('error.html', message='URL not found')
 
+# Retrieve statistics in JSON format
+@app.route('/stats')
+def stats_json():
+    stats = db.stats.find_one()
+    if stats:
+        # Calculate uptime
+        uptime = int(time.time() - stats['start_time'])
+        stats['uptime'] = uptime
+
+        # Calculate database percentage
+        total_urls = db.urls.count_documents({})
+        database_percentage = 0
+        if total_urls > 0:
+            expired_urls = db.urls.count_documents({"created_at": {"$lt": datetime.now() - timedelta(days=110)}})
+            database_percentage = (expired_urls / total_urls) * 100
+        stats['database_percentage'] = database_percentage
+
+        # Calculate system usage
+        cpu_percent = psutil.cpu_percent()
+        memory_percent = psutil.virtual_memory().percent
+        disk_percent = psutil.disk_usage('/').percent
+        stats['system_usage'] = {
+            'cpu_percent': cpu_percent,
+            'memory_percent': memory_percent,
+            'disk_percent': disk_percent
+        }
+
+        return jsonify(stats)
+    else:
+        return jsonify({"message": "No statistics found"})
+
 # 404 page
 @app.errorhandler(404)
 def page_not_found(e):
@@ -82,6 +126,5 @@ def page_not_found(e):
 
 if __name__ == '__main__':
     delete_expired_urls()  # Delete expired URLs when the application starts
-    schedule_deletion()  # Schedule deletion of expired URLs to run periodically
+    schedule_deletion()  # Schedule deletion of expired URLs and your cron job function
     app.run(debug=True)
-
