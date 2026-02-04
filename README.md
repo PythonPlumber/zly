@@ -1,4 +1,4 @@
-# ZLY | Professional URL Shortening Service
+# ZLY | URL Shortening Service
 
 **ZLY** (Zany Link Yanker) is an open-source, full-stack URL shortening application. Built with a focus on simplicity and efficiency, it leverages Python and MongoDB to provide a reliable service for transforming long-form URLs into concise, shareable identifiers.
 
