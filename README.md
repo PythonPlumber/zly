@@ -97,7 +97,7 @@ This project is licensed under the **MIT License**.
 
 ---
 
-**Maintained by [PythonPlumber**](https://github.com/PythonPlumber)
+**Maintained by [PythonPlumber**](https://github.com/PythonPlumber)**
 
 ```
 **Would you like me to generate a `requirements.txt` file or a professional `Procfile` to complete this repository?**
