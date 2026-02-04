@@ -1,10 +1,6 @@
 # Mega Hilarious URL Shrinker <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a5/512.gif" alt="💥" width="32" height="32">
 
 Welcome to the Mega Hilarious URL Shrinker project! Get ready for a laughter-filled experience like no other with the one and only ZLY (Zany Link Yanker) - the ultimate URL shortener that adds a dash of hilarity to every link!
-
-- [zly.uk.to](zly.uk.to)  - Main Site
-- [zly.my.to](zly.my.to)  - 2nd site
-- [zly.0rg.us](zly0rg.us) - 3rd site
   
   _all running on one MongoDB database_
 
