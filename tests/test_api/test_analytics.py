@@ -58,3 +58,34 @@ async def test_workspace_analytics_summary(auth_client: AsyncClient, db_session,
 async def test_link_analytics_requires_auth(client: AsyncClient):
     response = await client.get("/api/v1/links/00000000-0000-0000-0000-000000000000/analytics")
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_verify_password(auth_client: AsyncClient, db_session, test_user_id: str):
+    ws_resp = await auth_client.post("/api/v1/workspaces", json={"name": "PW WS", "slug": _slug()})
+    ws_id = ws_resp.json()["id"]
+    create_resp = await auth_client.post(
+        "/api/v1/links", json={"destination_url": "https://secret.com", "workspace_id": ws_id, "password": "hunter2"}
+    )
+    link_id = create_resp.json()["id"]
+
+    response = await auth_client.post(
+        f"/api/v1/links/{link_id}/verify-password", json={"password": "hunter2"}
+    )
+    assert response.status_code == 200
+    assert response.json()["destination_url"] == "https://secret.com"
+
+
+@pytest.mark.asyncio
+async def test_verify_password_wrong(auth_client: AsyncClient, db_session, test_user_id: str):
+    ws_resp = await auth_client.post("/api/v1/workspaces", json={"name": "PW2 WS", "slug": _slug()})
+    ws_id = ws_resp.json()["id"]
+    create_resp = await auth_client.post(
+        "/api/v1/links", json={"destination_url": "https://secret.com", "workspace_id": ws_id, "password": "hunter2"}
+    )
+    link_id = create_resp.json()["id"]
+
+    response = await auth_client.post(
+        f"/api/v1/links/{link_id}/verify-password", json={"password": "wrong"}
+    )
+    assert response.status_code == 403

@@ -1,4 +1,5 @@
 import hashlib
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,6 +34,22 @@ async def redirect(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
     if not link.is_active:
         raise HTTPException(status_code=status.HTTP_410_GONE, detail="Link is inactive")
+
+    now = datetime.now(timezone.utc)
+    if link.activate_at and link.activate_at > now:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not yet active")
+    if link.expires_at and link.expires_at < now:
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Link has expired")
+
+    if link.password_hash:
+        password = request.query_params.get("password", "")
+        from app.core.security import verify_password as check_pw
+        if not password or not check_pw(password, link.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Password required",
+                headers={"X-Link-Id": link.id, "X-Require-Password": "true"},
+            )
 
     try:
         await redis.set(f"link:{short_code}", link.destination_url)

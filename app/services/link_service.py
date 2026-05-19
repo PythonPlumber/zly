@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import hash_password
 from app.models.link import Link
 from app.schemas.link import LinkCreate, LinkUpdate
 from app.services.short_code import generate_short_code
@@ -16,6 +17,9 @@ async def create_link(db: AsyncSession, data: LinkCreate, user_id: str | None = 
         title=data.title,
         workspace_id=data.workspace_id,
         user_id=user_id,
+        password_hash=hash_password(data.password) if data.password else None,
+        expires_at=data.expires_at,
+        activate_at=data.activate_at,
     )
     db.add(link)
     await db.flush()
@@ -49,6 +53,12 @@ async def get_links(
 
 async def update_link(db: AsyncSession, link: Link, data: LinkUpdate) -> Link:
     update_data = data.model_dump(exclude_unset=True)
+    if "password" in update_data:
+        pw = update_data.pop("password")
+        if pw == "":
+            link.password_hash = None
+        elif pw is not None:
+            link.password_hash = hash_password(pw)
     for field, value in update_data.items():
         setattr(link, field, value)
     link.updated_at = datetime.now()

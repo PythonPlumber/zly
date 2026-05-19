@@ -4,7 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_db
 from app.core.security import get_current_user
 from app.models.user import User
-from app.schemas.link import LinkCreate, LinkResponse, LinkUpdate
+from app.core.security import verify_password
+from app.schemas.link import LinkCreate, LinkResponse, LinkUpdate, PasswordVerifyRequest, PasswordVerifyResponse
 from app.services.link_service import (
     create_link,
     delete_link,
@@ -95,3 +96,19 @@ async def api_delete_link(
     if not ws or ws.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not workspace owner")
     await delete_link(db, link)
+
+
+@router.post("/{link_id}/verify-password", response_model=PasswordVerifyResponse)
+async def api_verify_link_password(
+    link_id: str,
+    data: PasswordVerifyRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    link = await get_link_by_id(db, link_id)
+    if not link:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+    if not link.password_hash:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Link is not password protected")
+    if not verify_password(data.password, link.password_hash):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid password")
+    return PasswordVerifyResponse(destination_url=link.destination_url)
