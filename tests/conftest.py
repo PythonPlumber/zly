@@ -7,6 +7,7 @@ from httpx import ASGITransport, AsyncClient
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from app import models  # noqa: F401 — ensure all models are loaded before metadata
 from app.core.redis import get_redis
 from app.db import Base, get_db
 from app.main import app
