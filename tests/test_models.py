@@ -8,11 +8,12 @@ from app.models.user import User
 
 
 @pytest.mark.asyncio
-async def test_create_link(db_session: AsyncSession):
+async def test_create_link(db_session: AsyncSession, test_workspace_id: str):
     link = Link(
         short_code="abc1234",
         destination_url="https://example.com",
         title="Test Link",
+        workspace_id=test_workspace_id,
     )
     db_session.add(link)
     await db_session.flush()
@@ -25,8 +26,8 @@ async def test_create_link(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_create_click(db_session: AsyncSession):
-    link = Link(short_code="clicktest", destination_url="https://example.com")
+async def test_create_click(db_session: AsyncSession, test_workspace_id: str):
+    link = Link(short_code="clicktest", destination_url="https://example.com", workspace_id=test_workspace_id)
     db_session.add(link)
     await db_session.flush()
 

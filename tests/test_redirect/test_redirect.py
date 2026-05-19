@@ -6,8 +6,8 @@ from app.models.link import Link
 
 
 @pytest.mark.asyncio
-async def test_redirect_basic(client: AsyncClient, db_session: AsyncSession):
-    link = Link(short_code="test123", destination_url="https://example.com")
+async def test_redirect_basic(client: AsyncClient, db_session: AsyncSession, test_workspace_id: str):
+    link = Link(short_code="test123", destination_url="https://example.com", workspace_id=test_workspace_id)
     db_session.add(link)
     await db_session.flush()
 
@@ -23,8 +23,8 @@ async def test_redirect_not_found(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_redirect_inactive_link(client: AsyncClient, db_session: AsyncSession):
-    link = Link(short_code="inactive", destination_url="https://example.com", is_active=False)
+async def test_redirect_inactive_link(client: AsyncClient, db_session: AsyncSession, test_workspace_id: str):
+    link = Link(short_code="inactive", destination_url="https://example.com", is_active=False, workspace_id=test_workspace_id)
     db_session.add(link)
     await db_session.flush()
 

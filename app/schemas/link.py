@@ -10,7 +10,7 @@ class LinkBase(BaseModel):
 
 
 class LinkCreate(LinkBase):
-    pass
+    workspace_id: str
 
 
 class LinkUpdate(BaseModel):
@@ -23,6 +23,8 @@ class LinkResponse(LinkBase):
     id: str
     short_code: str
     is_active: bool
+    workspace_id: str
+    user_id: str | None = None
     created_at: datetime
     click_count: int = 0
 

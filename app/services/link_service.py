@@ -8,12 +8,14 @@ from app.schemas.link import LinkCreate, LinkUpdate
 from app.services.short_code import generate_short_code
 
 
-async def create_link(db: AsyncSession, data: LinkCreate) -> Link:
+async def create_link(db: AsyncSession, data: LinkCreate, user_id: str | None = None) -> Link:
     short_code = data.short_code or generate_short_code()
     link = Link(
         short_code=short_code,
         destination_url=data.destination_url,
         title=data.title,
+        workspace_id=data.workspace_id,
+        user_id=user_id,
     )
     db.add(link)
     await db.flush()
@@ -32,9 +34,15 @@ async def get_link_by_id(db: AsyncSession, link_id: str) -> Link | None:
 
 
 async def get_links(
-    db: AsyncSession, skip: int = 0, limit: int = 20, workspace_id: str | None = None
+    db: AsyncSession, workspace_id: str, skip: int = 0, limit: int = 20
 ) -> list[Link]:
-    query = select(Link).offset(skip).limit(limit).order_by(Link.created_at.desc())
+    query = (
+        select(Link)
+        .where(Link.workspace_id == workspace_id)
+        .offset(skip)
+        .limit(limit)
+        .order_by(Link.created_at.desc())
+    )
     result = await db.execute(query)
     return list(result.scalars().all())
 

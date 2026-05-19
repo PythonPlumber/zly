@@ -80,6 +80,29 @@ async def test_user_id(db_session: AsyncSession) -> str:
 
 
 @pytest_asyncio.fixture
+async def test_workspace_id(db_session: AsyncSession, test_user_id: str) -> str:
+    from app.schemas.workspace import WorkspaceCreate
+    from app.services.workspace_service import create_workspace
+
+    ws = await create_workspace(
+        db_session, WorkspaceCreate(name="Global Test WS", slug="global-test-ws"), test_user_id
+    )
+    return ws.id
+    from app.core.security import hash_password
+    from app.models.user import User
+
+    user = User(
+        email="testuser@test.com",
+        password_hash=hash_password("testpass"),
+        display_name="Test User",
+    )
+    db_session.add(user)
+    await db_session.flush()
+    await db_session.refresh(user)
+    return user.id
+
+
+@pytest_asyncio.fixture
 async def auth_client(client: AsyncClient, db_session: AsyncSession) -> AsyncClient:
     from app.schemas.auth import RegisterRequest
     from app.services.auth_service import register_user
