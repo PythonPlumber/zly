@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router, redirect_router
 from app.config import settings
 from app.core.redis import close_redis
+from app.routes.dashboard import router as dashboard_router
 
 
 @asynccontextmanager
@@ -24,6 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(dashboard_router)
 app.include_router(redirect_router)
 app.include_router(api_router, prefix="/api/v1")
 

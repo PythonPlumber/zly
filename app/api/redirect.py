@@ -1,7 +1,11 @@
+import hashlib
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_db, get_redis_client
+from app.core.user_agent import extract_domain, parse_user_agent
+from app.models.click import Click
 from app.services.link_service import get_link_by_code
 
 router = APIRouter()
@@ -34,6 +38,24 @@ async def redirect(
         await redis.set(f"link:{short_code}", link.destination_url)
     except ConnectionError:
         pass
+
+    ip = request.client.host if request.client else "unknown"
+    ua = request.headers.get("user-agent")
+    referer = request.headers.get("referer")
+    parsed = parse_user_agent(ua)
+
+    click = Click(
+        link_id=link.id,
+        ip_hash=hashlib.sha256(ip.encode()).hexdigest(),
+        user_agent=ua,
+        referrer=referer,
+        referrer_domain=extract_domain(referer),
+        browser=parsed["browser"],
+        browser_version=parsed["browser_version"],
+        os=parsed["os"],
+        device_type=parsed["device_type"],
+    )
+    db.add(click)
 
     return Response(
         status_code=status.HTTP_307_TEMPORARY_REDIRECT,

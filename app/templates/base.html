@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}UrlForge{% endblock %}</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .sidebar-link.active { background: rgba(59,130,246,0.2); border-color: #3b82f6; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-950 text-gray-100">
+    <div class="flex h-screen">
+        <aside class="w-64 bg-gray-900 border-r border-gray-800 p-4 flex flex-col">
+            <h1 class="text-xl font-bold mb-8">
+                <a href="/dashboard" class="text-blue-400 hover:text-blue-300">UrlForge</a>
+            </h1>
+            <nav class="flex-1 space-y-1">
+                <a href="/dashboard" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition {% if request.url.path == '/dashboard' %}active{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    Dashboard
+                </a>
+                <a href="/dashboard/links" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition {% if '/dashboard/links' in request.url.path %}active{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    Links
+                </a>
+            </nav>
+            <div class="border-t border-gray-800 pt-4">
+                <div class="text-sm text-gray-400">
+                    <p class="truncate">{{ user.email }}</p>
+                </div>
+            </div>
+        </aside>
+        <main class="flex-1 overflow-auto">
+            <div class="p-6">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>
