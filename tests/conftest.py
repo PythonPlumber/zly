@@ -61,3 +61,19 @@ async def client(db_session: AsyncSession, mock_redis) -> AsyncGenerator[AsyncCl
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def auth_client(client: AsyncClient, db_session: AsyncSession) -> AsyncClient:
+    from app.schemas.auth import RegisterRequest
+    from app.services.auth_service import register_user
+
+    user = await register_user(
+        db_session,
+        RegisterRequest(email="authuser@test.com", password="testpass123"),
+    )
+    from app.core.security import create_access_token
+
+    token = create_access_token({"sub": user.id})
+    client.headers["Authorization"] = f"Bearer {token}"
+    return client
