@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.link import Link
 from app.models.click import Click
+from app.models.user import User
 
 
 @pytest.mark.asyncio
@@ -40,3 +41,20 @@ async def test_create_click(db_session: AsyncSession):
     result = await db_session.execute(select(Click).where(Click.link_id == link.id))
     fetched = result.scalar_one()
     assert fetched.ip_hash == "abc123hash"
+
+
+@pytest.mark.asyncio
+async def test_create_user(db_session: AsyncSession):
+    user = User(
+        email="test@example.com",
+        password_hash="hashed_password_here",
+        display_name="Test User",
+    )
+    db_session.add(user)
+    await db_session.flush()
+
+    result = await db_session.execute(select(User).where(User.email == "test@example.com"))
+    fetched = result.scalar_one()
+    assert fetched.email == "test@example.com"
+    assert fetched.display_name == "Test User"
+    assert fetched.is_active is True
