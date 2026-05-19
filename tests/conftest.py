@@ -64,6 +64,22 @@ async def client(db_session: AsyncSession, mock_redis) -> AsyncGenerator[AsyncCl
 
 
 @pytest_asyncio.fixture
+async def test_user_id(db_session: AsyncSession) -> str:
+    from app.core.security import hash_password
+    from app.models.user import User
+
+    user = User(
+        email="testuser@test.com",
+        password_hash=hash_password("testpass"),
+        display_name="Test User",
+    )
+    db_session.add(user)
+    await db_session.flush()
+    await db_session.refresh(user)
+    return user.id
+
+
+@pytest_asyncio.fixture
 async def auth_client(client: AsyncClient, db_session: AsyncSession) -> AsyncClient:
     from app.schemas.auth import RegisterRequest
     from app.services.auth_service import register_user
