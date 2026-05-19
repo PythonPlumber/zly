@@ -8,8 +8,9 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app import models  # noqa: F401 — ensure all models are loaded before metadata
+from app.core.dependencies import get_db
 from app.core.redis import get_redis
-from app.db import Base, get_db
+from app.db import Base
 from app.main import app
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_urlforge.db"
