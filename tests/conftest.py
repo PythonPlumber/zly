@@ -1,15 +1,14 @@
 import asyncio
 from collections.abc import AsyncGenerator
+from unittest.mock import AsyncMock
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app import models  # noqa: F401 — ensure all models are loaded before metadata
-from app.core.dependencies import get_db
-from app.core.redis import get_redis
+from app import models  # noqa: F401
+from app.core.dependencies import get_db, get_redis_client
 from app.db import Base
 from app.main import app
 
@@ -42,29 +41,23 @@ async def db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest_asyncio.fixture
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def mock_redis():
+    mock = AsyncMock()
+    mock.get.return_value = None
+    return mock
+
+
+@pytest_asyncio.fixture
+async def client(db_session: AsyncSession, mock_redis) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db():
         yield db_session
 
+    async def override_redis():
+        yield mock_redis
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_redis_client] = override_redis
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
-
-
-redis_available = pytest.mark.skipif(
-    True,
-    reason="Redis not available in test environment — requires running Redis server",
-)
-
-
-@pytest_asyncio.fixture
-async def redis_client() -> AsyncGenerator[Redis, None]:
-    redis = await get_redis()
-    await redis.flushdb()
-    try:
-        yield redis
-    finally:
-        await redis.flushdb()
-        await redis.aclose()
