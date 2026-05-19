@@ -10,6 +10,8 @@ from app.core.security import (
 )
 from app.models.user import User
 from app.schemas.auth import RegisterRequest
+from app.schemas.workspace import WorkspaceCreate
+from app.services.workspace_service import create_workspace
 
 
 async def register_user(db: AsyncSession, data: RegisterRequest) -> User:
@@ -24,6 +26,14 @@ async def register_user(db: AsyncSession, data: RegisterRequest) -> User:
     db.add(user)
     await db.flush()
     await db.refresh(user)
+
+    slug = data.email.split("@")[0]
+    await create_workspace(
+        db,
+        WorkspaceCreate(name=f"{data.display_name or slug}'s Workspace", slug=slug),
+        user.id,
+    )
+
     return user
 
 
