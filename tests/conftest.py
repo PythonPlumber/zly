@@ -5,14 +5,13 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from redis.asyncio import Redis
-from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.redis import get_redis
 from app.db import Base, get_db
 from app.main import app
 
-TEST_DATABASE_URL = "postgresql+asyncpg://urlforge:urlforge@localhost:5432/urlforge_test"
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_urlforge.db"
 
 
 @pytest.fixture(scope="session")
@@ -24,7 +23,7 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session")
 async def test_engine():
-    engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield engine
@@ -50,6 +49,12 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
+
+
+redis_available = pytest.mark.skipif(
+    True,
+    reason="Redis not available in test environment — requires running Redis server",
+)
 
 
 @pytest_asyncio.fixture
