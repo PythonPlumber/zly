@@ -10,7 +10,14 @@
 <div class="max-w-6xl mx-auto">
     <div class="mb-6">
         <a href="/dashboard/links" class="text-blue-400 hover:text-blue-300 text-sm">&larr; Back to links</a>
-        <h2 class="text-2xl font-bold mt-1">{{ link.title or link.short_code }}</h2>
+        <div class="flex items-center gap-4 mt-1">
+            <h2 class="text-2xl font-bold">{{ link.title or link.short_code }}</h2>
+            <a href="/api/v1/links/{{ link.id }}/qrcode" download="qr-{{ link.short_code }}.png"
+               class="text-sm bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                QR Code
+            </a>
+        </div>
         <p class="text-gray-400 text-sm break-all mt-1">{{ link.destination_url }}</p>
         <code class="text-blue-300 text-sm">/{{ link.short_code }}</code>
     </div>

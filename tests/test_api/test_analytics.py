@@ -89,3 +89,37 @@ async def test_verify_password_wrong(auth_client: AsyncClient, db_session, test_
         f"/api/v1/links/{link_id}/verify-password", json={"password": "wrong"}
     )
     assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_qrcode_png(auth_client: AsyncClient, db_session, test_user_id: str):
+    ws_resp = await auth_client.post("/api/v1/workspaces", json={"name": "QR WS", "slug": _slug()})
+    ws_id = ws_resp.json()["id"]
+    create_resp = await auth_client.post(
+        "/api/v1/links", json={"destination_url": "https://example.com", "workspace_id": ws_id}
+    )
+    link_id = create_resp.json()["id"]
+    response = await auth_client.get(f"/api/v1/links/{link_id}/qrcode")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    assert len(response.content) > 100
+
+
+@pytest.mark.asyncio
+async def test_qrcode_svg(auth_client: AsyncClient, db_session, test_user_id: str):
+    ws_resp = await auth_client.post("/api/v1/workspaces", json={"name": "QR2 WS", "slug": _slug()})
+    ws_id = ws_resp.json()["id"]
+    create_resp = await auth_client.post(
+        "/api/v1/links", json={"destination_url": "https://example.com", "workspace_id": ws_id}
+    )
+    link_id = create_resp.json()["id"]
+    response = await auth_client.get(f"/api/v1/links/{link_id}/qrcode?format=svg")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/svg+xml"
+    assert b"<svg" in response.content
+
+
+@pytest.mark.asyncio
+async def test_qrcode_requires_auth(client: AsyncClient):
+    response = await client.get("/api/v1/links/00000000-0000-0000-0000-000000000000/qrcode")
+    assert response.status_code == 401

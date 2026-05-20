@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.dependencies import get_db
 from app.core.security import get_current_user
 from app.models.user import User
@@ -13,6 +15,7 @@ from app.services.link_service import (
     get_links,
     update_link,
 )
+from app.services.qr_service import generate_qr_png, generate_qr_svg
 from app.services.workspace_service import get_workspace
 
 router = APIRouter()
@@ -96,6 +99,30 @@ async def api_delete_link(
     if not ws or ws.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not workspace owner")
     await delete_link(db, link)
+
+
+@router.get("/{link_id}/qrcode")
+async def api_link_qrcode(
+    link_id: str,
+    format: str = Query("png", pattern="^(png|svg)$"),
+    box_size: int = Query(10, ge=4, le=40),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    link = await get_link_by_id(db, link_id)
+    if not link:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+    ws = await get_workspace(db, link.workspace_id)
+    if not ws or ws.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not workspace owner")
+
+    short_url = f"http://{settings.default_domain}/{link.short_code}"
+
+    if format == "svg":
+        svg = generate_qr_svg(short_url)
+        return Response(content=svg, media_type="image/svg+xml")
+    png = generate_qr_png(short_url, box_size=box_size)
+    return Response(content=png, media_type="image/png")
 
 
 @router.post("/{link_id}/verify-password", response_model=PasswordVerifyResponse)

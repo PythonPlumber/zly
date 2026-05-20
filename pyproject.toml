@@ -25,6 +25,7 @@ dependencies = [
     "httpx>=0.28.0",
     "bcrypt>=4.2.0",
     "pyjwt>=2.9.0",
+    "qrcode[pil]>=8.0",
 ]
 
 [project.optional-dependencies]
