@@ -28,5 +28,6 @@ class Click(Base):
     device_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
     referrer: Mapped[str | None] = mapped_column(Text, nullable=True)
     referrer_domain: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    variant_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
     link = relationship("Link", back_populates="clicks")

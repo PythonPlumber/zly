@@ -4,9 +4,12 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy.orm import selectinload
+
 from app.core.dependencies import get_db, get_redis_client
 from app.core.user_agent import extract_domain, parse_user_agent
 from app.models.click import Click
+from app.services.ab_service import list_variants, select_variant
 from app.services.link_service import get_link_by_code
 
 router = APIRouter()
@@ -51,8 +54,16 @@ async def redirect(
                 headers={"X-Link-Id": link.id, "X-Require-Password": "true"},
             )
 
+    variants = await list_variants(db, link.id)
+    target_url = link.destination_url
+    selected_variant = None
+    if variants:
+        selected_variant = select_variant(variants)
+        if selected_variant:
+            target_url = selected_variant.destination_url
+
     try:
-        await redis.set(f"link:{short_code}", link.destination_url)
+        await redis.set(f"link:{short_code}", target_url)
     except ConnectionError:
         pass
 
@@ -71,10 +82,11 @@ async def redirect(
         browser_version=parsed["browser_version"],
         os=parsed["os"],
         device_type=parsed["device_type"],
+        variant_id=selected_variant.id if selected_variant else None,
     )
     db.add(click)
 
     return Response(
         status_code=status.HTTP_307_TEMPORARY_REDIRECT,
-        headers={"location": link.destination_url},
+        headers={"location": target_url},
     )
