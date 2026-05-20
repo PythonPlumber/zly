@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Bio Page — UrlForge{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">Bio Page</h2>
+        <div class="flex gap-2">
+            {% if bio %}
+            <a href="/bio/{{ bio.slug }}" target="_blank" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition">View Public</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if bio %}
+    <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 mb-6">
+        <form hx-put="/api/v1{{ request.url.path }}" hx-target="body" class="space-y-4">
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Slug</label>
+                <input type="text" name="slug" value="{{ bio.slug }}" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Title</label>
+                <input type="text" name="title" value="{{ bio.title }}" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Bio</label>
+                <textarea name="bio" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">{{ bio.bio or '' }}</textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Avatar URL</label>
+                    <input type="text" name="avatar_url" value="{{ bio.avatar_url or '' }}" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Theme</label>
+                    <select name="theme" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">
+                        <option value="midnight" {% if bio.theme == 'midnight' %}selected{% endif %}>Midnight</option>
+                        <option value="dark" {% if bio.theme == 'dark' %}selected{% endif %}>Dark</option>
+                        <option value="light" {% if bio.theme == 'light' %}selected{% endif %}>Light</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-400">Published</label>
+                <input type="checkbox" name="is_published" value="true" {% if bio.is_published %}checked{% endif %} class="rounded bg-gray-800 border-gray-700">
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm transition">Save</button>
+        </form>
+    </div>
+
+    <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+            <h3 class="font-semibold">Links</h3>
+        </div>
+        <div class="divide-y divide-gray-800" id="bio-links">
+            {% for link in bio.links %}
+            <div class="px-6 py-3 flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="font-medium">{{ link.title }}</p>
+                    <p class="text-sm text-gray-400 truncate">{{ link.url }}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if link.is_active %}
+                    <span class="text-xs bg-green-900 text-green-300 px-2 py-0.5 rounded">Active</span>
+                    {% else %}
+                    <span class="text-xs bg-gray-700 text-gray-400 px-2 py-0.5 rounded">Hidden</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-gray-900 rounded-xl border border-gray-800 p-6">
+        <p class="text-gray-400 mb-4">No bio page yet. Create one to get started.</p>
+        <form hx-post="/api/v1{{ request.url.path }}" hx-target="body" class="space-y-4">
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Slug</label>
+                <input type="text" name="slug" placeholder="my-links" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Title</label>
+                <input type="text" name="title" placeholder="My Links" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm transition">Create Bio Page</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

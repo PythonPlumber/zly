@@ -3,5 +3,6 @@ from app.models.click import Click
 from app.models.user import User
 from app.models.workspace import Workspace, WorkspaceMember, Invite
 from app.models.api_key import ApiKey
+from app.models.bio import BioPage, BioLink
 
-__all__ = ["Link", "Click", "User", "Workspace", "WorkspaceMember", "Invite", "ApiKey"]
+__all__ = ["Link", "Click", "User", "Workspace", "WorkspaceMember", "Invite", "ApiKey", "BioPage", "BioLink"]

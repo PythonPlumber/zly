@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_db
 from app.core.security import get_current_user
 from app.models.user import User
+from app.services.bio_service import get_bio_page
 from app.services.link_service import get_link_by_id, get_links
 from app.services.workspace_service import get_workspace, get_workspaces_for_user
 
@@ -55,4 +56,21 @@ async def link_detail_page(
     return templates.TemplateResponse(
         "dashboard/link_detail.html",
         {"request": request, "user": current_user, "link": link},
+    )
+
+
+@router.get("/dashboard/bio", response_class=HTMLResponse)
+async def bio_page(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    workspaces = await get_workspaces_for_user(db, current_user.id)
+    default_ws = workspaces[0] if workspaces else None
+    bio = None
+    if default_ws:
+        bio = await get_bio_page(db, default_ws.id)
+    return templates.TemplateResponse(
+        "dashboard/bio.html",
+        {"request": request, "user": current_user, "bio": bio, "workspace_id": default_ws.id if default_ws else ""},
     )
