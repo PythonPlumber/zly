@@ -11,6 +11,7 @@ from app.services.workspace_service import (
     get_workspace,
     get_workspaces_for_user,
     update_workspace,
+    verify_workspace_access,
 )
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
@@ -39,10 +40,7 @@ async def api_get_workspace(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    ws = await get_workspace(db, workspace_id)
-    if not ws:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
-    return ws
+    return await verify_workspace_access(db, workspace_id, current_user)
 
 
 @router.patch("/{workspace_id}", response_model=WorkspaceResponse)
@@ -52,11 +50,7 @@ async def api_update_workspace(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    ws = await get_workspace(db, workspace_id)
-    if not ws:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
-    if ws.owner_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not workspace owner")
+    ws = await verify_workspace_access(db, workspace_id, current_user, require_owner=True)
     return await update_workspace(db, ws, data)
 
 
@@ -66,9 +60,5 @@ async def api_delete_workspace(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    ws = await get_workspace(db, workspace_id)
-    if not ws:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
-    if ws.owner_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not workspace owner")
+    ws = await verify_workspace_access(db, workspace_id, current_user, require_owner=True)
     await delete_workspace(db, ws)

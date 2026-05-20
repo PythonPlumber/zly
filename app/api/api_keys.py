@@ -6,24 +6,13 @@ from app.core.security import get_current_user
 from app.models.user import User
 from app.schemas.api_key import ApiKeyCreate, ApiKeyResponse, ApiKeyWithRaw
 from app.services.api_key_service import (
-    authenticate_api_key,
     create_api_key,
     list_api_keys,
     revoke_api_key,
 )
-from app.services.workspace_service import get_workspace
+from app.services.workspace_service import verify_workspace_access
 
 router = APIRouter(prefix="/workspaces/{workspace_id}/api-keys", tags=["api-keys"])
-
-
-async def _verify_workspace_access(
-    workspace_id: str, db: AsyncSession, user: User
-) -> None:
-    ws = await get_workspace(db, workspace_id)
-    if not ws:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
-    if ws.owner_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not workspace owner")
 
 
 @router.post("", response_model=ApiKeyWithRaw, status_code=status.HTTP_201_CREATED)
@@ -33,7 +22,7 @@ async def api_create_api_key(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await _verify_workspace_access(workspace_id, db, current_user)
+    await verify_workspace_access(db, workspace_id, current_user, require_owner=True)
     key_obj, raw_key = await create_api_key(db, data, current_user.id, workspace_id)
     return ApiKeyWithRaw(
         id=key_obj.id,
@@ -52,7 +41,7 @@ async def api_list_api_keys(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await _verify_workspace_access(workspace_id, db, current_user)
+    await verify_workspace_access(db, workspace_id, current_user, require_owner=True)
     return await list_api_keys(db, workspace_id)
 
 
@@ -63,7 +52,7 @@ async def api_revoke_api_key(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await _verify_workspace_access(workspace_id, db, current_user)
+    await verify_workspace_access(db, workspace_id, current_user, require_owner=True)
     key = await revoke_api_key(db, key_id)
     if not key:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API key not found")

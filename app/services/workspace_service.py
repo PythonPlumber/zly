@@ -1,6 +1,8 @@
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.user import User
 from app.models.workspace import Workspace, WorkspaceMember
 from app.schemas.workspace import WorkspaceCreate, WorkspaceUpdate
 from app.services.short_code import generate_short_code
@@ -44,3 +46,25 @@ async def update_workspace(db: AsyncSession, ws: Workspace, data: WorkspaceUpdat
 async def delete_workspace(db: AsyncSession, ws: Workspace) -> None:
     await db.delete(ws)
     await db.flush()
+
+
+async def verify_workspace_access(
+    db: AsyncSession, workspace_id: str, user: User, require_owner: bool = False
+) -> Workspace:
+    ws = await get_workspace(db, workspace_id)
+    if not ws:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
+    if ws.owner_id == user.id:
+        return ws
+    if require_owner:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not workspace owner")
+    result = await db.execute(
+        select(WorkspaceMember).where(
+            WorkspaceMember.workspace_id == workspace_id,
+            WorkspaceMember.user_id == user.id,
+        )
+    )
+    member = result.scalar_one_or_none()
+    if not member:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a workspace member")
+    return ws
