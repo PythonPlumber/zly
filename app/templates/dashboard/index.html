@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Zly{% endblock %}
+
+{% block content %}
+<div style="max-width: 72rem; margin: 0 auto;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.75rem;">Dashboard</h1>
+        <div style="width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--zly-green); animation: pulse-glow 2s ease-in-out infinite;"></div>
+    </div>
+
+{% if default_ws %}
+    <div hx-get="/api/v1/workspaces/{{ default_ws.id }}/analytics/summary" hx-trigger="load">
+        <div style="display: flex; justify-content: center; padding: 3rem 0;">
+            <div class="zly-spinner"></div>
+        </div>
+    </div>
+{% else %}
+    <div class="zly-card" style="text-align: center; padding: 3rem;">
+        <p style="color: var(--zly-muted); font-size: 1.1rem;">No workspace found. Create one to get started.</p>
+    </div>
+{% endif %}
+</div>
+{% endblock %}

@@ -1,8 +1,0 @@
-flask
-psycopg2-binary
-datetime
-pymongo
-validators
-gunicorn
-schedule
-psutil

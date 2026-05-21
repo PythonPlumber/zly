@@ -1,105 +1,225 @@
-# ZLY | URL Shortening Service
+# ✦ Zly
 
-**ZLY** (Zany Link Yanker) is an open-source, full-stack URL shortening application. Built with a focus on simplicity and efficiency, it leverages Python and MongoDB to provide a reliable service for transforming long-form URLs into concise, shareable identifiers.
+**Next-gen open-source URL shortener and marketing platform.**
 
----
-
-## Technical Overview
-
-The application utilizes a Flask-based backend and a NoNoSQL database architecture to ensure rapid data retrieval and reliable persistence.
-
-* **Backend:** Python 3.x, Flask
-* **Database:** MongoDB Atlas
-* **Infrastructure:** Gunicorn (WSGI), Nginx (Reverse Proxy)
-* **Frontend:** HTML5, CSS3
+Zly is a full-featured URL shortening platform with analytics, custom domains, QR codes, link-in-bio pages, A/B testing, team collaboration, and a developer API — all self-hosted.
 
 ## Features
 
-* **Unique Slug Generation:** Automatically creates shortened identifiers for all submitted URLs.
-* **Persistent Data Management:** Robust storage and retrieval via MongoDB integration.
-* **Environment Security:** Configured to use `.env` files for sensitive database credentials and API keys.
-* **Cross-Platform Deployment:** Optimized for PaaS (Render, Heroku) and self-hosted VPS environments.
+| Category | Capabilities |
+|---|---|
+| **Short Links** | Custom slugs, password protection, scheduling (activate/expire), bulk operations |
+| **Analytics** | Per-link and workspace dashboards; clicks over time, browser/OS/device, top referrers; Chart.js visualizations |
+| **QR Codes** | Auto-generated QR codes per link; PNG and SVG download |
+| **Link-in-Bio** | Profile pages with curated link collections; midnight/dark/light themes |
+| **A/B Testing** | Weighted destination variants with randomized traffic splitting; variant-level analytics |
+| **Custom Domains** | DNS TXT verification; workspace-scoped custom domains; CNAME-ready |
+| **Teams** | Multi-user workspaces; owner/member roles; invite flow with accept/decline |
+| **API** | Full REST API with auto-generated OpenAPI docs; scoped API keys per workspace |
+| **Security** | bcrypt password hashing; JWT auth with refresh tokens; link password protection |
 
----
+## Tech Stack
 
-## Installation & Setup
+| Component | Technology |
+|---|---|
+| Framework | FastAPI (Python 3.12+) |
+| Database | PostgreSQL via SQLAlchemy 2.0 (async) |
+| Cache | Redis 7 (optional, graceful fallback) |
+| Auth | bcrypt + PyJWT |
+| Frontend | Jinja2 + HTMX + Tailwind CSS v4 (CDN) + Chart.js |
+| Queue | arq (background jobs) |
+| Migrations | Alembic |
+| Containers | Docker, Docker Compose |
+| Reverse Proxy | Caddy (auto HTTPS) |
 
-### 1. Database Configuration
-1. Provision a MongoDB cluster via **MongoDB Atlas**.
-2. Create a database user with `readWrite` permissions.
-3. Configure Network Access (IP Whitelisting) for your deployment environment.
-4. Retrieve your Connection String and define the `MONGO_URI` in your environment variables.
+## Quick Start
 
-### 2. Local Development
-Ensure you have Python 3.x and `pip` installed:
+### Zero‑config Local Dev (no Docker, no PostgreSQL, no Redis)
 
 ```bash
-# Clone the repository
-git clone [https://github.com/PythonPlumber/ZLY.git](https://github.com/PythonPlumber/ZLY.git)
+# Clone
+git clone https://github.com/pythonplumber/zly.git
+cd zly
 
-# Install core dependencies
-pip install Flask pymongo python-dotenv
+# Install with dev dependencies
+pip install -e ".[dev]"
 
-# Execute the development server
-python3 app.py
+# Run database migrations
+alembic upgrade head
 
+# Start the dev server
+uvicorn app.main:app --reload
+
+# Open http://localhost:8000/dashboard
 ```
 
----
+That's it. The app defaults to SQLite and gracefully handles Redis being unavailable.
 
-## Deployment Guide
+### Docker Compose (full-stack production)
 
-### Render (PaaS)
-
-1. Connect your repository to the **Render** dashboard.
-2. Select **Web Service**.
-3. Configure the **Start Command**:
 ```bash
-gunicorn app:app
+# Create production env
+cp infrastructure/.env.example .env
+# Edit .env with secure secrets and postgres URL
 
+# Start all services
+docker compose -f infrastructure/docker-compose.yml up -d
+
+# Run migrations
+docker compose exec fastapi alembic upgrade head
 ```
 
+### Verify
 
-4. Define your `MONGO_URI` under the **Environment** tab.
-
-### Heroku
-
-1. Initialize the application via CLI:
 ```bash
-heroku create [your-app-name]
+curl http://localhost:8000/health
+# → {"status": "ok"}
 
+# Open http://localhost:8000/docs for interactive API docs
 ```
 
+## Configuration
 
-2. Ensure a `requirements.txt` and `Procfile` exist in the root directory.
-3. Deploy the source code:
+All configuration lives in `app/config.py` and is driven by environment variables:
+
+| Variable | Default | Description |
+|---|---|---|
+| `DATABASE_URL` | `sqlite+aiosqlite:///./zly.db` | Database connection string |
+| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection string (optional, graceful fallback) |
+| `SECRET_KEY` | `change-me-in-production` | General purpose secret |
+| `JWT_SECRET` | `change-me-in-production` | JWT signing key (min 32 bytes) |
+| `JWT_ALGORITHM` | `HS256` | JWT signing algorithm |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `15` | JWT token lifetime (minutes) |
+| `CORS_ORIGINS` | `http://localhost:8000` | Comma-separated allowed origins |
+| `DEFAULT_DOMAIN` | `localhost:8000` | Base domain for short URLs |
+
+## API Overview
+
+Interactive OpenAPI docs at `/docs` (auto-generated by FastAPI). All routes prefixed `/api/v1`.
+
+### Auth
+- `POST /api/v1/auth/register` — Register a new user
+- `POST /api/v1/auth/login` — Login, receive JWT access + refresh tokens
+- `POST /api/v1/auth/refresh` — Refresh JWT token
+
+### Links
+- `POST /api/v1/links` — Create a short link
+- `GET /api/v1/links?workspace_id=` — List links for a workspace
+- `GET /api/v1/links/{id}` — Get link details
+- `PATCH /api/v1/links/{id}` — Update a link
+- `DELETE /api/v1/links/{id}` — Delete a link
+- `POST /api/v1/links/{id}/qrcode` — Generate QR code (PNG or SVG)
+- `POST /api/v1/links/{id}/verify-password` — Verify link password
+
+### A/B Testing
+- `POST /api/v1/links/{id}/variants` — Add an A/B variant
+- `GET /api/v1/links/{id}/variants` — List variants
+- `PATCH /api/v1/variants/{id}` — Update a variant
+- `DELETE /api/v1/variants/{id}` — Delete a variant
+
+### Analytics
+- `GET /api/v1/links/{id}/analytics` — Per-link analytics
+- `GET /api/v1/workspaces/{id}/analytics/summary` — Workspace-level summary
+
+### Workspaces & Teams
+- `GET/POST /api/v1/workspaces` — List/create workspaces
+- `GET/PUT/DELETE /api/v1/workspaces/{id}` — Workspace detail/update/delete
+- `POST /api/v1/workspaces/{id}/invites` — Invite a member
+- `GET /api/v1/workspaces/{id}/members` — List members
+
+### Bio Pages
+- `POST /api/v1/workspaces/{id}/bio` — Create bio page
+- `GET /api/v1/workspaces/{id}/bio` — Get bio page
+- `PUT /api/v1/workspaces/{id}/bio` — Update bio page
+- `POST /api/v1/workspaces/{id}/bio/links` — Add link to bio page
+- `DELETE /api/v1/bio-links/{id}` — Remove link from bio page
+
+### Custom Domains
+- `POST /api/v1/workspaces/{id}/domains` — Add a custom domain
+- `GET /api/v1/workspaces/{id}/domains` — List domains
+- `POST /api/v1/workspaces/{id}/domains/{did}/verify` — Verify domain (TXT record)
+- `DELETE /api/v1/workspaces/{id}/domains/{did}` — Remove a domain
+
+### API Keys
+- `POST /api/v1/workspaces/{id}/api-keys` — Create API key
+- `GET /api/v1/workspaces/{id}/api-keys` — List API keys
+- `DELETE /api/v1/api-keys/{id}` — Delete API key
+
+### Redirect
+- `GET /{short_code}` — Redirect to destination URL
+
+## Project Structure
+
+```
+zly/
+├── app/
+│   ├── api/           # Route handlers (auth, links, analytics, bio, domains, ab_testing, etc.)
+│   ├── core/          # Config, security, dependencies, user-agent parser
+│   ├── models/        # SQLAlchemy ORM models
+│   ├── schemas/       # Pydantic request/response schemas
+│   ├── services/      # Business logic layer
+│   ├── templates/     # Jinja2 HTML templates (toon/editorial style)
+│   ├── db.py          # SQLAlchemy engine + session
+│   ├── config.py      # Pydantic Settings
+│   └── main.py        # FastAPI application factory
+├── infrastructure/    # Docker Compose, Caddy, Dockerfile, .env.example
+├── migrations/        # Alembic database migrations
+├── tests/             # Pytest suite (112+ tests)
+├── worker/            # arq background worker
+├── docs/              # Deployment & architecture guides
+├── .github/           # CI workflow
+└── pyproject.toml     # Project configuration & dependencies
+```
+
+## Deployment
+
+See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for the full deployment guide covering:
+
+- Production Docker Compose setup with Caddy reverse proxy
+- PostgreSQL and Redis configuration
+- SSL/TLS with auto-Let's Encrypt
+- Security hardening (secrets, CORS, rate limiting)
+- Monitoring and backup strategies
+
+## Architecture
+
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for detailed architecture documentation covering:
+
+- Data model relationships and migration strategy
+- Routing flow (redirect engine, caching, analytics recording)
+- Authentication and authorization model
+- Async job patterns and Redis integration
+- Multi-tenancy via workspaces and teams
+
+## Development
+
+### Running Tests
+
 ```bash
-git push heroku master
-
+pytest -v          # 112+ tests covering all features
+pytest --cov=app   # With coverage
 ```
 
+### Code Quality
 
+```bash
+ruff check .       # Linting (E, F, I, N, W, UP)
+mypy app/          # Strict type checking
+```
 
-### VPS (Self-Hosted)
+### Database Migrations
 
-For production environments (Ubuntu/Debian recommended):
+```bash
+# Create a new migration
+alembic revision --autogenerate -m "description"
 
-1. **System Dependencies:** Install `nginx`, `python3-pip`, and `mongodb`.
-2. **Process Management:** Use **Gunicorn** managed by `systemd` to ensure high availability.
-3. **Reverse Proxy:** Configure **Nginx** to forward traffic to the Gunicorn application socket.
-4. **Security:** Configure your firewall (UFW) to allow traffic on ports `80` (HTTP) and `443` (HTTPS).
+# Apply migrations
+alembic upgrade head
 
----
+# Rollback
+alembic downgrade -1
+```
 
 ## License
 
-This project is licensed under the **MIT License**.
-
----
-
-**Maintained by [PythonPlumber**](https://github.com/PythonPlumber)**
-
-```
-**Would you like me to generate a `requirements.txt` file or a professional `Procfile` to complete this repository?**
-
-```
+MIT — see [LICENSE](LICENSE).

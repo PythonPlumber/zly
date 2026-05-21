@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Links — Zly{% endblock %}
+
+{% block content %}
+<div style="max-width: 72rem; margin: 0 auto;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.75rem;">Links</h1>
+    </div>
+
+    <div class="zly-card" style="padding: 0; overflow: hidden;">
+        <table class="zly-table">
+            <thead>
+                <tr>
+                    <th>Short URL</th>
+                    <th>Destination</th>
+                    <th>Clicks</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="links-tbody">
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 3rem 1rem; color: var(--zly-muted);">
+                        Select a workspace to view links.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
