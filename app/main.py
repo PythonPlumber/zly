@@ -9,6 +9,7 @@ from app.config import settings
 from app.core.rate_limiter import setup_rate_limiter
 from app.core.csrf import CSRFMiddleware
 from app.core.request_id import RequestIDMiddleware
+from app.core.logging import setup_logging
 from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.redis import close_redis
 from app.routes.dashboard import router as dashboard_router
@@ -16,6 +17,7 @@ from app.routes.dashboard import router as dashboard_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    setup_logging()
     yield
     await close_redis()
 
