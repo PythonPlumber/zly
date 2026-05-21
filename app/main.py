@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router, redirect_router
@@ -13,6 +14,11 @@ from app.core.logging import setup_logging
 from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.redis import close_redis
 from app.routes.dashboard import router as dashboard_router
+from app.core.exceptions import (
+    http_exception_handler,
+    validation_exception_handler,
+    unhandled_exception_handler,
+)
 
 
 @asynccontextmanager
@@ -23,6 +29,16 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Zly", version="0.1.0", lifespan=lifespan)
+
+import os
+sentry_dsn = os.getenv("SENTRY_DSN", "")
+if sentry_dsn:
+    import sentry_sdk
+    sentry_sdk.init(dsn=sentry_dsn, traces_sample_rate=0.1)
+
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
 
 app.add_middleware(
     CORSMiddleware,
