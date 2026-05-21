@@ -38,17 +38,21 @@ async def get_link_by_id(db: AsyncSession, link_id: str) -> Link | None:
 
 
 async def get_links(
-    db: AsyncSession, workspace_id: str, skip: int = 0, limit: int = 20
-) -> list[Link]:
-    query = (
-        select(Link)
-        .where(Link.workspace_id == workspace_id)
-        .offset(skip)
-        .limit(limit)
-        .order_by(Link.created_at.desc())
-    )
-    result = await db.execute(query)
-    return list(result.scalars().all())
+    db: AsyncSession, workspace_id: str, page: int = 1, page_size: int = 20
+) -> tuple[list[Link], int, bool]:
+    from sqlalchemy import func, select
+
+    base = select(Link).where(Link.workspace_id == workspace_id).order_by(Link.created_at.desc())
+
+    count_result = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_result.scalar() or 0
+
+    offset = (page - 1) * page_size
+    result = await db.execute(base.offset(offset).limit(page_size))
+    links = list(result.scalars().all())
+
+    has_next = (offset + page_size) < total
+    return links, total, has_next
 
 
 async def update_link(db: AsyncSession, link: Link, data: LinkUpdate) -> Link:

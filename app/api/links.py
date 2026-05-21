@@ -7,6 +7,7 @@ from app.core.dependencies import get_db
 from app.core.security import get_current_user, verify_password
 from app.models.user import User
 from app.schemas.link import LinkCreate, LinkResponse, LinkUpdate, PasswordVerifyRequest, PasswordVerifyResponse
+from app.schemas.common import PaginatedResponse
 from app.services.link_service import (
     create_link,
     delete_link,
@@ -31,17 +32,23 @@ async def api_create_link(
     return link
 
 
-@router.get("", response_model=list[LinkResponse])
+@router.get("", response_model=PaginatedResponse)
 async def api_list_links(
     workspace_id: str,
-    skip: int = 0,
-    limit: int = 20,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     await verify_workspace_access(db, workspace_id, current_user)
-    links = await get_links(db, workspace_id, skip=skip, limit=limit)
-    return links
+    links, total, has_next = await get_links(db, workspace_id, page=page, page_size=page_size)
+    return PaginatedResponse(
+        total=total,
+        page=page,
+        page_size=page_size,
+        has_next=has_next,
+        items=[LinkResponse.model_validate(l) for l in links],
+    )
 
 
 @router.get("/{link_id}", response_model=LinkResponse)

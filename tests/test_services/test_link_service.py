@@ -39,8 +39,10 @@ async def test_get_link_by_code_not_found(db_session: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_get_links_empty(db_session: AsyncSession, test_workspace_id: str):
-    links = await get_links(db_session, workspace_id=test_workspace_id)
+    links, total, has_next = await get_links(db_session, workspace_id=test_workspace_id)
     assert links == []
+    assert total == 0
+    assert has_next is False
 
 
 @pytest.mark.asyncio
@@ -48,8 +50,10 @@ async def test_get_links_pagination(db_session: AsyncSession, test_workspace_id:
     for i in range(5):
         data = LinkCreate(destination_url=f"https://example{i}.com", workspace_id=test_workspace_id)
         await create_link(db_session, data)
-    links = await get_links(db_session, workspace_id=test_workspace_id, limit=3)
+    links, total, has_next = await get_links(db_session, workspace_id=test_workspace_id, page=1, page_size=3)
     assert len(links) == 3
+    assert total == 5
+    assert has_next is True
 
 
 @pytest.mark.asyncio

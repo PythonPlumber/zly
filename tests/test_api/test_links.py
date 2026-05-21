@@ -31,7 +31,10 @@ async def test_list_links(auth_client: AsyncClient):
     response = await auth_client.get(f"/api/v1/links?workspace_id={ws_id}")
     assert response.status_code == 200
     data = response.json()
-    assert len(data) == 2
+    assert data["total"] == 2
+    assert len(data["items"]) == 2
+    assert data["page"] == 1
+    assert data["has_next"] is False
 
 
 @pytest.mark.asyncio
