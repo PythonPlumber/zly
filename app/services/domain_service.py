@@ -8,7 +8,7 @@ from app.schemas.domain import DomainCreate
 
 
 def generate_verification_code() -> str:
-    return f"urlforge-verify={uuid.uuid4().hex}"
+    return f"zly-verify={uuid.uuid4().hex}"
 
 
 async def create_domain(db: AsyncSession, workspace_id: str, data: DomainCreate) -> CustomDomain:

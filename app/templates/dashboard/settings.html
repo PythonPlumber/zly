@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Settings — Zly{% endblock %}
+
+{% block content %}
+<div style="max-width: 48rem; margin: 0 auto;">
+    <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem;">Settings</h1>
+
+    <div class="zly-card" style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1rem; margin-bottom: 1rem;">Profile</h3>
+        <form hx-patch="/api/v1/users/me" hx-target="body" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+                <label>Email</label>
+                <input type="email" value="{{ user.email }}" class="zly-input" disabled style="opacity: 0.5;">
+            </div>
+            <div>
+                <label>Display Name</label>
+                <input type="text" name="display_name" value="{{ user.display_name or '' }}" class="zly-input" placeholder="Your display name">
+            </div>
+            <button type="submit" class="zly-btn zly-btn-primary" style="align-self: flex-start;">Save Profile</button>
+        </form>
+    </div>
+
+    <div class="zly-card">
+        <h3 style="font-size: 1rem; margin-bottom: 1rem;">Change Password</h3>
+        <form hx-post="/api/v1/users/me/change-password" hx-target="body" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+                <label>Current Password</label>
+                <input type="password" name="old_password" required class="zly-input">
+            </div>
+            <div>
+                <label>New Password</label>
+                <input type="password" name="new_password" required class="zly-input" minlength="8">
+            </div>
+            <button type="submit" class="zly-btn zly-btn-primary" style="align-self: flex-start;">Change Password</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Tags — Zly{% endblock %}
+{% block content %}
+<div style="max-width: 72rem; margin: 0 auto;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.75rem;">Tags</h1>
+        <button class="zly-btn zly-btn-primary" hx-get="/dashboard/tags/new-form" hx-target="#tag-form" hx-swap="innerHTML">+ Create Tag</button>
+    </div>
+    <div id="tag-form"></div>
+    <div class="zly-card" style="padding: 0; overflow: unchecked;">
+        <table class="zly-table">
+            <thead>
+                <tr><th>Name</th><th>Color</th><th>Created</th><th style="text-align: right;">Actions</th></tr>
+            </thead>
+            <tbody id="tags-tbody" hx-get="/api/v1/workspaces/{{ workspace_id }}/tags" hx-trigger="load" hx-swap="innerHTML">
+                <tr><td colspan="4" style="text-align: center; padding: 2rem 1rem; color: var(--zly-muted);">Loading tags...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -70,3 +70,60 @@ async def update_link(db: AsyncSession, link: Link, data: LinkUpdate) -> Link:
 async def delete_link(db: AsyncSession, link: Link) -> None:
     await db.delete(link)
     await db.flush()
+
+
+async def get_links_all(db: AsyncSession, workspace_id: str) -> list[Link]:
+    result = await db.execute(
+        select(Link)
+        .where(Link.workspace_id == workspace_id)
+        .order_by(Link.created_at.desc())
+    )
+    return list(result.scalars().all())
+
+
+async def bulk_create_links(
+    db: AsyncSession,
+    rows: list[dict],
+    workspace_id: str,
+    user_id: str | None = None,
+) -> dict:
+    created = 0
+    errors = []
+    for i, row in enumerate(rows):
+        try:
+            data = LinkCreate(
+                destination_url=row["destination_url"],
+                title=row.get("title") or None,
+                short_code=row.get("short_code") or None,
+                password=row.get("password") or None,
+                workspace_id=workspace_id,
+            )
+            link = Link(
+                short_code=data.short_code or generate_short_code(),
+                destination_url=data.destination_url,
+                title=data.title,
+                workspace_id=workspace_id,
+                user_id=user_id,
+                password_hash=hash_password(data.password) if data.password else None,
+            )
+            db.add(link)
+            await db.flush()
+            created += 1
+        except Exception as e:
+            errors.append({"row": i, "error": str(e)})
+    return {"created": created, "errors": errors}
+
+
+async def export_links_csv(db: AsyncSession, workspace_id: str) -> str:
+    import csv
+    from io import StringIO
+    links = await get_links_all(db, workspace_id)
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["short_code", "destination_url", "title", "is_active", "expires_at", "created_at"])
+    for link in links:
+        writer.writerow([
+            link.short_code, link.destination_url, link.title or "",
+            str(link.is_active), str(link.expires_at or ""), str(link.created_at),
+        ])
+    return output.getvalue()

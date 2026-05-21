@@ -6,5 +6,11 @@ from app.models.api_key import ApiKey
 from app.models.bio import BioPage, BioLink
 from app.models.domain import CustomDomain
 from app.models.ab import ABVariant
+from app.models.webhook import Webhook
+from app.models.tag import Tag, link_tags
 
-__all__ = ["Link", "Click", "User", "Workspace", "WorkspaceMember", "Invite", "ApiKey", "BioPage", "BioLink", "CustomDomain", "ABVariant"]
+__all__ = [
+    "Link", "Click", "User", "Workspace", "WorkspaceMember", "Invite",
+    "ApiKey", "BioPage", "BioLink", "CustomDomain", "ABVariant",
+    "Webhook", "Tag", "link_tags",
+]

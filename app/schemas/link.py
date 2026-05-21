@@ -1,6 +1,20 @@
 from datetime import datetime
+from urllib.parse import urlparse
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
+
+
+ALLOWED_URL_SCHEMES = {"http", "https"}
+DANGEROUS_SCHEMES = {"javascript", "data", "file", "vbscript"}
+
+
+def _validate_url_scheme(v: str) -> str:
+    parsed = urlparse(v)
+    if parsed.scheme in DANGEROUS_SCHEMES:
+        raise ValueError(f"URL with scheme '{parsed.scheme}' is not allowed")
+    if parsed.scheme not in ALLOWED_URL_SCHEMES:
+        raise ValueError(f"URL scheme must be http or https, got '{parsed.scheme}'")
+    return v
 
 
 class LinkBase(BaseModel):
@@ -8,10 +22,12 @@ class LinkBase(BaseModel):
     title: str | None = None
     short_code: str | None = None
 
+    _validate_url = field_validator("destination_url")(_validate_url_scheme)
+
 
 class LinkCreate(LinkBase):
     workspace_id: str
-    password: str | None = None
+    password: str | None = Field(None, min_length=1)
     expires_at: datetime | None = None
     activate_at: datetime | None = None
 
@@ -23,6 +39,8 @@ class LinkUpdate(BaseModel):
     password: str | None = None
     expires_at: datetime | None = None
     activate_at: datetime | None = None
+
+    _validate_url = field_validator("destination_url")(_validate_url_scheme)
 
 
 class LinkResponse(LinkBase):
@@ -37,6 +55,11 @@ class LinkResponse(LinkBase):
     click_count: int = 0
 
     model_config = {"from_attributes": True}
+
+
+class BulkImportResponse(BaseModel):
+    created: int
+    errors: list[dict]
 
 
 class PasswordVerifyRequest(BaseModel):

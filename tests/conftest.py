@@ -12,7 +12,7 @@ from app.core.dependencies import get_db, get_redis_client
 from app.db import Base
 from app.main import app
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_urlforge.db"
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_zly.db"
 
 
 @pytest.fixture(scope="session")
@@ -49,6 +49,9 @@ async def mock_redis():
 
 @pytest_asyncio.fixture
 async def client(db_session: AsyncSession, mock_redis) -> AsyncGenerator[AsyncClient, None]:
+    from app.core.rate_limiter import ZONES
+    ZONES.clear()
+
     async def override_get_db():
         yield db_session
 
@@ -65,11 +68,12 @@ async def client(db_session: AsyncSession, mock_redis) -> AsyncGenerator[AsyncCl
 
 @pytest_asyncio.fixture
 async def test_user_id(db_session: AsyncSession) -> str:
+    from uuid import uuid4
     from app.core.security import hash_password
     from app.models.user import User
 
     user = User(
-        email="testuser@test.com",
+        email=f"testuser-{uuid4().hex[:8]}@test.com",
         password_hash=hash_password("testpass"),
         display_name="Test User",
     )

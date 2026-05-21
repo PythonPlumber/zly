@@ -49,19 +49,34 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
 
 async def create_tokens(user: User) -> tuple[str, str]:
     access = create_access_token({"sub": user.id})
-    refresh = create_refresh_token({"sub": user.id})
+    refresh = create_refresh_token({"sub": user.id}, token_version=user.token_version)
     return access, refresh
 
 
-async def refresh_user_token(refresh_token: str) -> tuple[str, str] | None:
+async def refresh_user_token(
+    refresh_token: str,
+    db: AsyncSession | None = None,
+) -> tuple[str, str] | None:
     payload = decode_refresh_token(refresh_token)
     if not payload:
         return None
     user_id = payload.get("sub")
     if not user_id:
         return None
+    token_version = payload.get("ver", 0)
+
+    if db is not None:
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        if not user:
+            return None
+        if user.token_version != token_version:
+            return None
+        user.token_version += 1
+        await db.flush()
+
     access = create_access_token({"sub": user_id})
-    refresh = create_refresh_token({"sub": user_id})
+    refresh = create_refresh_token({"sub": user_id}, token_version=token_version + 1 if db else token_version)
     return access, refresh
 
 

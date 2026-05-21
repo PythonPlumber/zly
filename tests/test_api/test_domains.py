@@ -32,7 +32,7 @@ async def test_add_domain(client: AsyncClient, db_session: AsyncSession):
     data = response.json()
     assert data["domain"] == "links.example.com"
     assert data["is_verified"] is False
-    assert data["verification_code"].startswith("urlforge-verify=")
+    assert data["verification_code"].startswith("zly-verify=")
 
 
 @pytest.mark.asyncio

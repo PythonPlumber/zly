@@ -1,50 +1,53 @@
 {% extends "base.html" %}
 
-{% block title %}Link — UrlForge{% endblock %}
+{% block title %}Link — Zly{% endblock %}
 
 {% block head %}
 <meta name="link-id" content="{{ link.id }}">
 {% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto">
-    <div class="mb-6">
-        <a href="/dashboard/links" class="text-blue-400 hover:text-blue-300 text-sm">&larr; Back to links</a>
-        <div class="flex items-center gap-4 mt-1">
-            <h2 class="text-2xl font-bold">{{ link.title or link.short_code }}</h2>
+<div style="max-width: 72rem; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem;">
+        <a href="/dashboard/links" style="color: var(--zly-purple); font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.375rem;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Back to links
+        </a>
+        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
+            <h1 style="font-size: 1.75rem;">{{ link.title or link.short_code }}</h1>
             <a href="/api/v1/links/{{ link.id }}/qrcode" download="qr-{{ link.short_code }}.png"
-               class="text-sm bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+               class="zly-btn zly-btn-secondary" style="font-size: 0.8rem;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 QR Code
             </a>
         </div>
-        <p class="text-gray-400 text-sm break-all mt-1">{{ link.destination_url }}</p>
-        <code class="text-blue-300 text-sm">/{{ link.short_code }}</code>
+        <p style="color: var(--zly-muted); font-size: 0.875rem; word-break: break-all; margin-top: 0.375rem;">{{ link.destination_url }}</p>
+        <code style="color: var(--zly-pink); font-size: 0.875rem;">/{{ link.short_code }}</code>
     </div>
 
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="stats-cards">
-        <div class="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <p class="text-gray-400 text-sm">Total Clicks</p>
-            <p class="text-3xl font-bold text-white" id="total-clicks">—</p>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;" id="stats-cards">
+        <div class="zly-card">
+            <p style="color: var(--zly-muted); font-size: 0.8rem; font-family: 'Fredoka', sans-serif;">Total Clicks</p>
+            <p style="font-size: 2rem; font-weight: 700; font-family: 'Fredoka', sans-serif;" id="total-clicks">—</p>
         </div>
     </div>
 
-    <div class="grid lg:grid-cols-2 gap-6">
-        <div class="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <h3 class="text-sm font-medium text-gray-400 mb-3">Clicks Over Time</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div class="zly-card">
+            <h3 style="font-size: 0.8rem; color: var(--zly-muted); margin-bottom: 1rem;">Clicks Over Time</h3>
             <canvas id="clicksChart" height="200"></canvas>
         </div>
-        <div class="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <h3 class="text-sm font-medium text-gray-400 mb-3">Browsers</h3>
+        <div class="zly-card">
+            <h3 style="font-size: 0.8rem; color: var(--zly-muted); margin-bottom: 1rem;">Browsers</h3>
             <canvas id="browsersChart" height="200"></canvas>
         </div>
-        <div class="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <h3 class="text-sm font-medium text-gray-400 mb-3">Devices</h3>
+        <div class="zly-card">
+            <h3 style="font-size: 0.8rem; color: var(--zly-muted); margin-bottom: 1rem;">Devices</h3>
             <canvas id="devicesChart" height="200"></canvas>
         </div>
-        <div class="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <h3 class="text-sm font-medium text-gray-400 mb-3">Top Referrers</h3>
-            <div id="referrers-list" class="text-sm"></div>
+        <div class="zly-card">
+            <h3 style="font-size: 0.8rem; color: var(--zly-muted); margin-bottom: 1rem;">Top Referrers</h3>
+            <div id="referrers-list" style="font-size: 0.875rem;"></div>
         </div>
     </div>
 </div>
@@ -64,8 +67,10 @@ fetch(`/api/v1/links/${linkId}/analytics`)
                 datasets: [{
                     label: 'Clicks',
                     data: data.clicks_over_time.map(d => d.count),
-                    borderColor: '#3b82f6',
-                    fill: false
+                    borderColor: '#ff6b9d',
+                    backgroundColor: 'rgba(255, 107, 157, 0.1)',
+                    fill: true,
+                    tension: 0.4
                 }]
             },
             options: { responsive: true, plugins: { legend: { display: false } } }
@@ -77,10 +82,10 @@ fetch(`/api/v1/links/${linkId}/analytics`)
                 labels: data.browsers.map(b => b.browser),
                 datasets: [{
                     data: data.browsers.map(b => b.count),
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                    backgroundColor: ['#ff6b9d', '#c44dff', '#4d9fff', '#4dffb5', '#ffd64d']
                 }]
             },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#9a8abf' } } } }
         });
 
         new Chart(document.getElementById('devicesChart'), {
@@ -89,19 +94,34 @@ fetch(`/api/v1/links/${linkId}/analytics`)
                 labels: data.devices.map(d => d.device),
                 datasets: [{
                     data: data.devices.map(d => d.count),
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b']
+                    backgroundColor: ['#ff6b9d', '#4d9fff', '#4dffb5']
                 }]
             },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#9a8abf' } } } }
         });
 
         const refList = document.getElementById('referrers-list');
+        refList.textContent = '';
         if (data.top_referrers.length === 0) {
-            refList.innerHTML = '<p class="text-gray-500">No referrer data yet</p>';
+            const p = document.createElement('p');
+            p.style.color = 'var(--zly-muted)';
+            p.textContent = 'No referrer data yet';
+            refList.appendChild(p);
         } else {
-            refList.innerHTML = data.top_referrers.map(r =>
-                `<div class="flex justify-between py-1"><span>${r.domain}</span><span class="text-gray-400">${r.count}</span></div>`
-            ).join('');
+            for (const r of data.top_referrers) {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.justifyContent = 'space-between';
+                row.style.padding = '0.375rem 0';
+                const domain = document.createElement('span');
+                domain.textContent = r.domain;
+                const count = document.createElement('span');
+                count.style.color = 'var(--zly-muted)';
+                count.textContent = String(r.count);
+                row.appendChild(domain);
+                row.appendChild(count);
+                refList.appendChild(row);
+            }
         }
     });
 </script>
