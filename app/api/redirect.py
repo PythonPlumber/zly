@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 from datetime import datetime, timezone
 
@@ -8,9 +9,35 @@ from sqlalchemy.orm import selectinload
 
 from app.core.dependencies import get_db, get_redis_client
 from app.core.user_agent import extract_domain, parse_user_agent
+from app.core.logging import get_logger
+logger = get_logger(__name__)
+from app.db import get_session_factory
 from app.models.click import Click
 from app.services.ab_service import list_variants, select_variant
 from app.services.link_service import get_link_by_code
+
+
+async def _fire_webhooks(workspace_id: str, event: str, payload: dict) -> None:
+    from app.services.webhook_service import trigger_webhooks
+    factory = get_session_factory()
+    async with factory() as session:
+        try:
+            await trigger_webhooks(session, workspace_id, event, payload)
+            await session.commit()
+        except Exception:
+            await session.rollback()
+
+
+async def _check_expiry_on_redirect(workspace_id: str) -> None:
+    from app.services.notification_service import check_expiring_links
+    factory = get_session_factory()
+    async with factory() as session:
+        try:
+            await check_expiring_links(session, workspace_id)
+            await session.commit()
+        except Exception:
+            await session.rollback()
+
 
 router = APIRouter()
 
@@ -29,8 +56,8 @@ async def redirect(
                 status_code=status.HTTP_307_TEMPORARY_REDIRECT,
                 headers={"location": cached_url},
             )
-    except ConnectionError:
-        pass
+    except Exception as exc:
+        logger.warning("Redis get failed, falling back to DB", extra={"short_code": short_code, "error": str(exc)})
 
     link = await get_link_by_code(db, short_code)
     if not link:
@@ -64,8 +91,8 @@ async def redirect(
 
     try:
         await redis.set(f"link:{short_code}", target_url)
-    except ConnectionError:
-        pass
+    except Exception as exc:
+        logger.warning("Redis set failed, cache will be cold", extra={"short_code": short_code, "error": str(exc)})
 
     ip = request.client.host if request.client else "unknown"
     ua = request.headers.get("user-agent")
@@ -85,6 +112,27 @@ async def redirect(
         variant_id=selected_variant.id if selected_variant else None,
     )
     db.add(click)
+
+    asyncio.create_task(
+        _fire_webhooks(
+            link.workspace_id,
+            "click.created",
+            {
+                "event": "click.created",
+                "link_id": link.id,
+                "short_code": link.short_code,
+                "destination_url": target_url,
+                "variant_id": selected_variant.id if selected_variant else None,
+                "browser": parsed["browser"],
+                "os": parsed["os"],
+                "device_type": parsed["device_type"],
+                "referrer_domain": extract_domain(referer),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+    )
+
+    asyncio.create_task(_check_expiry_on_redirect(link.workspace_id))
 
     return Response(
         status_code=status.HTTP_307_TEMPORARY_REDIRECT,
