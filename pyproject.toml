@@ -26,11 +26,6 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP",
 ]
 
-[project.urls]
-Homepage = "https://senuka.me"
-Repository = "https://github.com/pythonplumber/zly"
-Issues = "https://github.com/pythonplumber/zly/issues"
-
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.32.0",
@@ -48,6 +43,11 @@ dependencies = [
     "pyjwt>=2.9.0",
     "qrcode[pil]>=8.0",
 ]
+
+[project.urls]
+Homepage = "https://senuka.me"
+Repository = "https://github.com/pythonplumber/zly"
+Issues = "https://github.com/pythonplumber/zly/issues"
 
 [project.optional-dependencies]
 dev = [
