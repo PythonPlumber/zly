@@ -1,10 +1,5 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index.py" }
-  ],
-  "functions": {
-    "api/index.py": {
-      "excludeFiles": "{tests/**,__pycache__/**,**/*.pyc,.pytest_cache/**,.mypy_cache/**,.ruff_cache/**,node_modules/**,worker/**,migrations/**}"
-    }
-  }
+  ]
 }
