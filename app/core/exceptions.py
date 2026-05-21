@@ -13,6 +13,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     return JSONResponse(
         status_code=exc.status_code,
         content={
+            "detail": exc.detail,
             "error": exc.detail,
             "status_code": exc.status_code,
             "request_id": get_request_id(),
@@ -22,10 +23,29 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    def _simplify_error(err: dict) -> dict:
+        result = {}
+        for k, v in err.items():
+            if isinstance(v, dict):
+                result[k] = _simplify_error(v)
+            elif isinstance(v, list):
+                result[k] = [_simplify_error(i) if isinstance(i, dict) else str(i) for i in v]
+            elif hasattr(v, "__class__") and "ValidationError" in v.__class__.__name__:
+                result[k] = str(v)
+            else:
+                try:
+                    import json as _json
+                    _json.dumps(v)
+                    result[k] = v
+                except (TypeError, ValueError):
+                    result[k] = str(v)
+        return result
+
+    simplified = [_simplify_error(e) for e in exc.errors()]
     return JSONResponse(
         status_code=422,
         content={
-            "detail": exc.errors(),
+            "detail": simplified,
             "request_id": get_request_id(),
         },
         headers={"X-Request-ID": get_request_id()} if get_request_id() else None,

@@ -44,6 +44,27 @@ async def db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 async def mock_redis():
     mock = AsyncMock()
     mock.get.return_value = None
+
+    class FakePipeline:
+        def __init__(self):
+            self._commands = []
+
+        def zremrangebyscore(self, *a, **kw):
+            return self
+
+        def zcard(self, *a, **kw):
+            return self
+
+        def zadd(self, *a, **kw):
+            return self
+
+        def expire(self, *a, **kw):
+            return self
+
+        async def execute(self):
+            return [0, 0, 1, True]
+
+    mock.pipeline.return_value = FakePipeline()
     return mock
 
 
