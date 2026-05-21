@@ -1,273 +1,268 @@
 # Deployment Guide — Zly
 
-This guide covers production deployment of Zly with Docker Compose, Caddy reverse proxy, PostgreSQL, and Redis.
+Zly can be deployed anywhere. This guide covers every option, ranked from most to least recommended.
 
-## Prerequisites
+---
 
-- Linux VPS (Ubuntu 22.04+ or Debian 12+ recommended)
+## 🥇 VPS / Dedicated Server (Recommended)
+
+Full control. Persistent PostgreSQL, Redis caching, auto-HTTPS via Caddy, zero platform lock-in.
+
+### Prerequisites
+
+- Linux VPS (Ubuntu 24.04+ or Debian 12+, **$5–10/mo** on [Hetzner](https://hetzner.com), [DigitalOcean](https://digitalocean.com), or [Linode](https://linode.com))
 - Docker Engine 24+ and Docker Compose v2
-- A domain name pointing to your server (e.g., `zly.example.com`)
-- For custom domains: ability to add DNS records (CNAME + TXT)
+- A domain name pointing to your server (e.g. `zly.example.com`)
 
-## Quick Deploy
+### Quick Deploy
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/zly.git
+# SSH into your server
+ssh root@your-server-ip
+
+# Install Docker (Ubuntu)
+apt update && apt install -y docker.io docker-compose-v2
+
+# Clone
+git clone https://github.com/pythonplumber/zly.git
 cd zly
 
-# Create production environment file
+# Configure
 cp infrastructure/.env.example .env
-# Edit .env with secure secrets
+nano .env   # Set secrets, domain, etc.
 
 # Start all services
 docker compose -f infrastructure/docker-compose.yml up -d
 
-# Run database migrations
-docker compose -f infrastructure/docker-compose.yml exec fastapi alembic upgrade head
-
-# Check logs
-docker compose -f infrastructure/docker-compose.yml logs -f
+# Run migrations
+docker compose exec fastapi alembic upgrade head
 ```
 
-## Environment Configuration
-
-Create `.env` in the project root:
+### Environment Variables (`.env`)
 
 ```env
-# Database
-DATABASE_URL=postgresql+asyncpg://zly:your-db-password@postgres:5432/zly
-
-# Redis (optional, app degrades gracefully)
+DATABASE_URL=postgresql+asyncpg://zly:your-password@postgres:5432/zly
 REDIS_URL=redis://redis:6379/0
-
-# Secrets — generate with: openssl rand -hex 64
-SECRET_KEY=<64-char-hex>
-JWT_SECRET=<64-char-hex>
-
-# Security
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# Networking
+SECRET_KEY=<openssl rand -hex 64>
+JWT_SECRET=<openssl rand -hex 64>
 CORS_ORIGINS=https://zly.example.com
 DEFAULT_DOMAIN=zly.example.com
-
-# Production flag
 ENVIRONMENT=production
 ```
 
-## Docker Compose (Production)
+### What You Get
 
-The `infrastructure/docker-compose.yml` includes:
+| Service | Role |
+|---|---|
+| **Caddy** | Reverse proxy, auto-Let's Encrypt TLS, rate limiting |
+| **FastAPI** | Zly application server (4 workers) |
+| **PostgreSQL** | Primary database (persistent volume) |
+| **Redis** | Cache + optional job queue (persistent volume) |
 
-- **postgres** — PostgreSQL 16 Alpine with persistent volume
-- **redis** — Redis 7 Alpine with persistent volume
-- **caddy** — Caddy v2 reverse proxy with auto-Let's Encrypt TLS
-- **fastapi** — Zly application server with health checks
-
-All services share an internal Docker network. Caddy exposes ports 80 and 443.
-
-## Caddy Configuration
-
-The `infrastructure/Caddyfile` handles:
-
-- Automatic TLS via Let's Encrypt
-- Reverse proxy to the FastAPI container
-- Static file serving for QR codes and assets
-- Security headers
-
-For production, update the domain:
-
-```
-zly.example.com {
-    reverse_proxy fastapi:8000
-}
-```
-
-## Security Hardening
-
-### Required
-
-- Generate secure random secrets: `openssl rand -hex 64`
-- Set `JWT_SECRET` to at least 32 bytes of random data
-- Change `POSTGRES_PASSWORD` in docker-compose.yml
-- Set `CORS_ORIGINS` to your exact domain (not `*`)
-- Use `ENVIRONMENT=production` in .env
-- Never commit `.env` to version control
-
-### Recommended
-
-- Add rate limiting middleware (see below)
-- Set up fail2ban for SSH
-- Use Docker's built-in health checks
-- Enable Docker content trust
-- Regular security updates via unattended-upgrades
-
-### Rate Limiting (via Caddy)
-
-Add to your Caddyfile:
-
-```caddy
-zly.example.com {
-    rate_limit {
-        zone api {
-            key {remote_host}
-            events 100
-            window 1m
-        }
-        zone redirect {
-            key {remote_host}
-            events 500
-            window 1m
-        }
-    }
-    reverse_proxy fastapi:8000
-}
-```
-
-## Database
-
-### Migrations
+### Managing
 
 ```bash
-# Run migrations
-docker compose exec fastapi alembic upgrade head
-
-# View migration history
-docker compose exec fastapi alembic history
-
-# Create a new migration (after model changes)
-docker compose exec fastapi alembic revision --autogenerate -m "description"
-```
-
-### Backup
-
-```bash
-# Automated backup script (add to cron)
-docker compose exec postgres pg_dump -U zly zly > backup_$(date +%Y%m%d_%H%M%S).sql
-
-# Restore
-cat backup.sql | docker compose exec -T postgres psql -U zly zly
-```
-
-## Monitoring
-
-### Health Check
-
-```
-GET /health
-```
-
-Returns `{"status": "ok"}` when the application is running.
-
-### Logs
-
-```bash
-# All services
-docker compose logs -f
-
-# Single service
+# Logs
 docker compose logs -f fastapi
 
-# Last 100 lines
-docker compose logs --tail=100 fastapi
-```
+# Backups
+docker compose exec postgres pg_dump -U zly zly > backup.sql
 
-### Resource Monitoring
-
-```bash
-docker stats
-```
-
-### Application Metrics
-
-- Uptime via `/health` endpoint
-- Database connection pool size in logs
-- Redis cache hit rate (via Redis CLI: `docker compose exec redis redis-cli info stats`)
-
-## Upgrades
-
-```bash
-# Pull latest image
-docker compose pull
-
-# Recreate containers
-docker compose up -d --force-recreate
-
-# Run any new migrations
+# Upgrades
+git pull
+docker compose up -d --build
 docker compose exec fastapi alembic upgrade head
 ```
 
-## Troubleshooting
+### Security
 
-### Database connection fails
+- Generate secrets with `openssl rand -hex 64`
+- Set `CORS_ORIGINS` to your exact domain
+- Never commit `.env` to Git
 
-```bash
-# Verify PostgreSQL is running
-docker compose ps postgres
+---
 
-# Check PostgreSQL logs
-docker compose logs postgres
+## 🥈 Railway
+
+Native Docker support with a free PostgreSQL add-on and Redis. Best PaaS option.
+
+### Steps
+
+1. Push your repo to GitHub
+2. Go to [Railway](https://railway.app) → **New Project** → **Deploy from GitHub repo**
+3. Add these environment variables in Railway dashboard:
+
+```env
+DATABASE_URL=postgresql+asyncpg://<user>:<pass>@<host>:<port>/<db>
+SECRET_KEY=<random-64-char>
+JWT_SECRET=<random-64-char>
+CORS_ORIGINS=https://your-app.railway.app
+DEFAULT_DOMAIN=your-app.railway.app
+ENVIRONMENT=production
 ```
 
-### 502 Bad Gateway from Caddy
+4. Add a **PostgreSQL** plugin — Railway auto-generates `DATABASE_URL` from it
+5. Add a **Redis** plugin (optional, for caching)
+6. In **Settings**, set the start command:
 
 ```bash
-# Verify FastAPI is running
-docker compose ps fastapi
-
-# Check FastAPI logs
-docker compose logs fastapi
-
-# Test FastAPI directly (internal port)
-curl http://localhost:8000/health
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-### Migrations fail
+7. Run migrations in the Railway shell:
 
 ```bash
-# Check current migration state
-docker compose exec fastapi alembic current
-
-# View migration history
-docker compose exec fastapi alembic history
-
-# Manually stamp a revision
-docker compose exec fastapi alembic stamp head
+alembic upgrade head
 ```
 
-### SSL certificate issues
+### Notes
 
-Caddy auto-provisions certificates. If issues arise:
+- Railway handles HTTPS automatically
+- The `$PORT` variable is auto-set by Railway
+- Custom domains work via Railway's domain settings
+
+---
+
+## 🥉 Render
+
+Web Service + managed PostgreSQL via Neon. No Redis (app degrades gracefully).
+
+### Steps
+
+1. Push your repo to GitHub
+2. Go to [Render](https://render.com) → **New Web Service** → connect your repo
+3. Fill in:
+
+| Field | Value |
+|---|---|
+| Name | `zly` |
+| Runtime | **Python 3** |
+| Build Command | `pip install -e ".[dev]"` |
+| Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Plan | **Starter** ($7/mo) or Free |
+
+4. Add environment variables:
+
+```env
+DATABASE_URL=postgresql+asyncpg://<neon-user>:<pass>@<neon-host>/<db>?sslmode=require
+SECRET_KEY=<random-64-char>
+JWT_SECRET=<random-64-char>
+CORS_ORIGINS=https://zly.onrender.com
+DEFAULT_DOMAIN=zly.onrender.com
+ENVIRONMENT=production
+```
+
+5. Create a **Neon** (free) or **Render PostgreSQL** database and set `DATABASE_URL`
+6. Deploy, then run migrations in Render Shell:
 
 ```bash
-# Check Caddy logs
-docker compose logs caddy
-
-# Manually request certificate
-docker compose exec caddy caddy renew
-
-# Test certificate renewal
-docker compose exec caddy caddy renew --force
+alembic upgrade head
 ```
 
-## Scaling
+### Notes
 
-For high-traffic deployments:
+- Free tier spins down after inactivity (slow first request)
+- Upgrade to Starter for always-on
+- Redis is not available on Render free tier — Zly works fine without it
+- Custom domains via Render dashboard
 
-- Increase FastAPI workers: `CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]`
-- Add a dedicated Redis cluster for caching
-- Use a managed PostgreSQL service (RDS, Cloud SQL)
-- Add a CDN for static assets and QR codes
-- Load balance across multiple FastAPI instances with Caddy
+---
+
+## 🏅 Vercel
+
+Serverless functions. Requires Neon/Supabase for database. No Redis.
+
+### Prerequisites
+
+- [Vercel account](https://vercel.com)
+- [Neon](https://neon.tech) (free serverless PostgreSQL) or [Supabase](https://supabase.com)
+- Vercel CLI (`npm i -g vercel`)
+
+### Steps
+
+1. Push your repo to GitHub
+2. Create a Neon database and copy the connection string
+3. Deploy via Vercel dashboard or CLI:
+
+```bash
+vercel --prod
+```
+
+4. Add environment variables in Vercel dashboard → Project Settings → Environment Variables:
+
+```env
+DATABASE_URL=postgresql+asyncpg://<user>:<pass>@<neon-host>/<db>?sslmode=require
+SECRET_KEY=<random-64-char>
+JWT_SECRET=<random-64-char>
+CORS_ORIGINS=https://zly-ecru.vercel.app
+DEFAULT_DOMAIN=zly-ecru.vercel.app
+ENVIRONMENT=production
+```
+
+5. Run migrations via Vercel CLI:
+
+```bash
+vercel env pull
+alembic upgrade head
+```
+
+### Important
+
+- The `api/index.py` file is the Vercel entrypoint (already configured)
+- `vercel.json` routes all traffic to the FastAPI function
+- Serverless cold starts mean the first request may take 2–3 seconds
+- SQLite doesn't work on Vercel (read-only filesystem) — **must use PostgreSQL**
+- No Redis available — app falls back to direct DB lookups
+
+---
+
+## Platform Comparison
+
+| Feature | VPS 🥇 | Railway 🥈 | Render 🥉 | Vercel 🏅 |
+|---|---|---|---|---|
+| **Cost** | $5–10/mo | $5/mo+ | $7/mo+ | Free |
+| **Redis** | ✅ Full | ✅ Add-on | ❌ | ❌ |
+| **PostgreSQL** | ✅ Native | ✅ Add-on | ✅ Neon | ✅ Neon |
+| **HTTPS** | ✅ Caddy auto | ✅ Auto | ✅ Auto | ✅ Auto |
+| **Persistent storage** | ✅ Docker volume | ✅ | ✅ | ❌ ephemeral |
+| **Cold starts** | ❌ None | ❌ None | ⚠️ Free tier | ⚠️ 2–3s |
+| **Custom domain** | ✅ | ✅ | ✅ | ✅ |
+| **Control** | Full | Medium | Medium | Low |
+| **Setup time** | 15 min | 5 min | 5 min | 5 min |
+
+---
 
 ## Reference
 
+### All configuration variables
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `DATABASE_URL` | ✅ Yes | — | PostgreSQL connection string |
+| `SECRET_KEY` | ✅ Yes | — | General purpose secret (64-char hex) |
+| `JWT_SECRET` | ✅ Yes | — | JWT signing key (64-char hex) |
+| `CORS_ORIGINS` | ✅ Yes | — | Allowed origins, comma-separated |
+| `DEFAULT_DOMAIN` | ✅ Yes | — | Base domain for short URLs |
+| `REDIS_URL` | ❌ No | `redis://localhost:6379/0` | Redis connection (graceful fallback) |
+| `JWT_ALGORITHM` | ❌ No | `HS256` | Signing algorithm |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | ❌ No | `15` | JWT lifetime (minutes) |
+
+### One-time setup on every platform
+
+```bash
+alembic upgrade head
+```
+
+After the first deploy, run this command to create all database tables.
+
+### Files
+
 | File | Purpose |
 |---|---|
-| `infrastructure/docker-compose.yml` | Service orchestration |
+| `infrastructure/docker-compose.yml` | Full-stack Docker (VPS) |
 | `infrastructure/Dockerfile` | Application container |
 | `infrastructure/Caddyfile` | Reverse proxy + TLS |
 | `infrastructure/.env.example` | Environment template |
-| `app/config.py` | Runtime configuration |
+| `api/index.py` | Vercel serverless entrypoint |
+| `vercel.json` | Vercel routing config |
+| `app/config.py` | All environment variables |

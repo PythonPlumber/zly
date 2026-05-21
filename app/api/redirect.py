@@ -29,7 +29,7 @@ async def redirect(
                 status_code=status.HTTP_307_TEMPORARY_REDIRECT,
                 headers={"location": cached_url},
             )
-    except ConnectionError:
+    except Exception:
         pass
 
     link = await get_link_by_code(db, short_code)
@@ -64,7 +64,7 @@ async def redirect(
 
     try:
         await redis.set(f"link:{short_code}", target_url)
-    except ConnectionError:
+    except Exception:
         pass
 
     ip = request.client.host if request.client else "unknown"

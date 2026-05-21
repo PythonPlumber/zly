@@ -4,11 +4,11 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.redis import get_redis
-from app.db import async_session_factory
+from app.db import get_session_factory
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_factory() as session:
+    async with get_session_factory()() as session:
         try:
             yield session
             await session.commit()
