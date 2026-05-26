@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     rate_limit_auth: int = 10
     rate_limit_window: int = 60
     max_upload_size_mb: int = 50
+    smtp_host: str = "localhost"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "no-reply@zly.ai"
+    smtp_from_name: str = "Zly"
 
     @property
     def cors_origin_list(self) -> list[str]:

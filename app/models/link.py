@@ -27,3 +27,4 @@ class Link(Base):
     )
 
     clicks = relationship("Click", back_populates="link", lazy="dynamic")
+    user = relationship("User", foreign_keys=[user_id])

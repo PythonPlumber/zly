@@ -47,8 +47,80 @@ async def check_expiring_links_worker(ctx: dict, workspace_id: str) -> None:
             raise
 
 
+async def send_invite_email_job(ctx: dict, invite_id: str, to_email: str, workspace_name: str, invited_by_name: str, invite_url: str, expires_at: str) -> None:
+    from app.services.email_service import send_invite_email
+
+    await send_invite_email(
+        invite_id=invite_id,
+        to_email=to_email,
+        workspace_name=workspace_name,
+        invited_by_name=invited_by_name,
+        invite_url=invite_url,
+        expires_at=expires_at,
+    )
+
+
+async def send_password_reset_email_job(ctx: dict, user_id: str, to_email: str, reset_url: str, expires_at: str) -> None:
+    from app.services.email_service import send_password_reset_email
+
+    await send_password_reset_email(
+        user_id=user_id,
+        to_email=to_email,
+        reset_url=reset_url,
+        expires_at=expires_at,
+    )
+
+
+async def send_expiry_alert_email_job(ctx: dict, link_id: str, to_email: str, link_title: str, short_code: str, short_url: str, destination_url: str, expires_at: str, hours_remaining: int, total_clicks: int) -> None:
+    from app.services.email_service import send_expiry_alert_email
+
+    await send_expiry_alert_email(
+        link_id=link_id,
+        to_email=to_email,
+        link_title=link_title,
+        short_code=short_code,
+        short_url=short_url,
+        destination_url=destination_url,
+        expires_at=expires_at,
+        hours_remaining=hours_remaining,
+        total_clicks=total_clicks,
+    )
+
+
+async def deliver_webhook(ctx: dict, delivery_id: str) -> None:
+    from app.services.webhook_delivery_service import deliver_webhook as _deliver
+
+    async with ctx["session_factory"]() as db:
+        try:
+            await _deliver(db, delivery_id)
+            await db.commit()
+        except Exception:
+            await db.rollback()
+            raise
+
+
+async def send_campaign_job(ctx: dict, campaign_id: str, contact_ids: list[str], base_url: str) -> None:
+    from app.services.email_campaign_service import send_campaign_sync
+
+    async with ctx["session_factory"]() as db:
+        try:
+            await send_campaign_sync(db, campaign_id, contact_ids, base_url)
+            await db.commit()
+        except Exception:
+            await db.rollback()
+            raise
+
+
 class WorkerSettings:
-    functions = [process_click, check_expiring_links_worker]
+    functions = [
+        process_click,
+        check_expiring_links_worker,
+        send_invite_email_job,
+        send_password_reset_email_job,
+        send_expiry_alert_email_job,
+        deliver_webhook,
+        send_campaign_job,
+    ]
     on_startup = startup
     on_shutdown = shutdown
     redis_settings = RedisSettings.from_url(settings.redis_url)

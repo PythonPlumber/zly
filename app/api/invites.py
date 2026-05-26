@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.dependencies import get_db
 from app.core.security import get_current_user
+from app.core.logging import get_logger
 from app.models.user import User
 from app.schemas.invite import InviteCreate, InviteResponse, MemberResponse
 from app.services.invite_service import (
@@ -10,11 +12,14 @@ from app.services.invite_service import (
     cancel_invite,
     create_invite,
     decline_invite,
+    get_invite_email_data,
     list_invites,
     list_members,
     remove_member,
 )
 from app.services.workspace_service import verify_workspace_access
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/workspaces/{workspace_id}", tags=["invites"])
 
@@ -28,6 +33,16 @@ async def api_create_invite(
 ):
     ws = await verify_workspace_access(db, workspace_id, current_user, require_owner=True)
     invite = await create_invite(db, workspace_id, current_user.id, data.email, data.role)
+
+    email_data = await get_invite_email_data(db, invite, settings.default_domain)
+    if email_data:
+        try:
+            from app.core.arq_pool import get_arq_pool
+            pool = await get_arq_pool()
+            await pool.enqueue_job("send_invite_email_job", **email_data)
+        except Exception as exc:
+            logger.warning("Failed to enqueue invite email, skipping", extra={"invite_id": invite.id, "error": str(exc)})
+
     return invite
 
 

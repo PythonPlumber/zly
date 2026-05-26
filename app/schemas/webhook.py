@@ -55,6 +55,7 @@ class WebhookResponse(BaseModel):
     secret: str | None = None
     events: str
     is_active: bool
+    max_retries: int
     created_at: datetime
 
     model_config = {"from_attributes": True}

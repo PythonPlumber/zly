@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from app.api.router import api_router, redirect_router
+from app.api.email_tracking import router as email_tracking_router
+from app.api.email_campaigns import router as email_campaigns_router
 from app.routes.auth_routes import router as auth_router
 from app.config import settings
 from app.core.rate_limiter import setup_rate_limiter
@@ -92,6 +94,8 @@ if settings.rate_limit_enabled:
 app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(email_campaigns_router, prefix="/api/v1")
+app.include_router(email_tracking_router)
 
 
 @app.get("/health")
