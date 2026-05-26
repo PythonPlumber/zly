@@ -1,20 +1,17 @@
 import asyncio
-import hashlib
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sqlalchemy.orm import selectinload
-
 from app.core.dependencies import get_db, get_redis_client
 from app.core.user_agent import extract_domain, parse_user_agent
 from app.core.logging import get_logger
-logger = get_logger(__name__)
 from app.db import get_session_factory
-from app.models.click import Click
 from app.services.ab_service import list_variants, select_variant
 from app.services.link_service import get_link_by_code
+
+logger = get_logger(__name__)
 
 
 async def _fire_webhooks(workspace_id: str, event: str, payload: dict) -> None:
@@ -99,19 +96,25 @@ async def redirect(
     referer = request.headers.get("referer")
     parsed = parse_user_agent(ua)
 
-    click = Click(
-        link_id=link.id,
-        ip_hash=hashlib.sha256(ip.encode()).hexdigest(),
-        user_agent=ua,
-        referrer=referer,
-        referrer_domain=extract_domain(referer),
-        browser=parsed["browser"],
-        browser_version=parsed["browser_version"],
-        os=parsed["os"],
-        device_type=parsed["device_type"],
-        variant_id=selected_variant.id if selected_variant else None,
-    )
-    db.add(click)
+    try:
+        from app.core.arq_pool import get_arq_pool
+        pool = await get_arq_pool()
+        await pool.enqueue_job(
+            "process_click",
+            link_id=link.id,
+            ip=ip,
+            user_agent=ua,
+            referrer=referer,
+            variant_id=selected_variant.id if selected_variant else None,
+        )
+    except Exception as exc:
+        logger.warning("Failed to enqueue click job, recording synchronously", extra={"error": str(exc)})
+        from app.services.click_service import record_click
+        click = await record_click(
+            db, link.id, ip, ua, referer,
+            variant_id=selected_variant.id if selected_variant else None,
+        )
+        db.add(click)
 
     asyncio.create_task(
         _fire_webhooks(
