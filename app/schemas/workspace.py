@@ -17,7 +17,10 @@ class WorkspaceResponse(BaseModel):
     name: str
     slug: str
     owner_id: str
+    not_found_redirect: str | None = None
+    brand_color: str | None = None
     created_at: datetime
+    updated_at: datetime
 
     model_config = {"from_attributes": True}
 

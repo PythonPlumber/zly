@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Invites — Zly{% endblock %}
+{% block content %}
+<div style="max-width: 72rem; margin: 0 auto;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">Team Members</h1>
+        <button class="zly-btn zly-btn-primary" hx-get="/dashboard/invites/new-form" hx-target="#invite-form-modal" hx-swap="innerHTML">+ Invite Member</button>
+    </div>
+    <div id="invite-form-modal"></div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div class="zly-card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--zly-line);">
+                <h3 style="font-size: 0.65rem; letter-spacing: 0.15em; color: var(--zly-muted);">Members</h3>
+            </div>
+            <table class="zly-table">
+                <thead>
+                    <tr><th>User</th><th>Role</th><th>Joined</th><th style="text-align: right;">Actions</th></tr>
+                </thead>
+                <tbody id="members-tbody" hx-get="/dashboard/invites/members" hx-trigger="load every 30s" hx-swap="innerHTML">
+                    <tr><td colspan="4" style="text-align: center; padding: 2rem 1rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">Loading members...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="zly-card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--zly-line);">
+                <h3 style="font-size: 0.65rem; letter-spacing: 0.15em; color: var(--zly-muted);">Pending Invites</h3>
+            </div>
+            <table class="zly-table">
+                <thead>
+                    <tr><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th style="text-align: right;">Actions</th></tr>
+                </thead>
+                <tbody id="invites-tbody" hx-get="/dashboard/invites/list" hx-trigger="load every 30s" hx-swap="innerHTML">
+                    <tr><td colspan="5" style="text-align: center; padding: 2rem 1rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">Loading invites...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

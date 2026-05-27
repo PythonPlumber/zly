@@ -1,0 +1,24 @@
+<td style="font-family: 'Space Mono', monospace; font-size: 0.75rem;">{{ invite.email }}</td>
+<td>
+    <span class="zly-badge zly-badge-role">{{ invite.role }}</span>
+</td>
+<td>
+    {% if invite.status == 'pending' %}
+    <span class="zly-badge zly-badge-warning">Pending</span>
+    {% elif invite.status == 'accepted' %}
+    <span class="zly-badge zly-badge-active">Accepted</span>
+    {% elif invite.status == 'declined' %}
+    <span class="zly-badge zly-badge-hidden">Declined</span>
+    {% elif invite.status == 'cancelled' %}
+    <span class="zly-badge zly-badge-hidden">Cancelled</span>
+    {% endif %}
+</td>
+<td style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--zly-muted);">{{ invite.created_at.strftime('%Y-%m-%d') if invite.created_at else '' }}</td>
+<td style="text-align: right; white-space: nowrap;">
+    {% if invite.status == 'pending' %}
+    <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+            hx-post="/api/v1/workspaces/{{ workspace_id }}/invites/{{ invite.id }}/cancel"
+            hx-target="closest tr" hx-swap="outerHTML"
+            hx-confirm="Cancel this invite?">Cancel</button>
+    {% endif %}
+</td>

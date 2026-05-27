@@ -44,11 +44,35 @@ async def db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 async def mock_redis():
     mock = AsyncMock()
     mock.get.return_value = None
+
+    class FakePipeline:
+        def __init__(self):
+            self._commands = []
+
+        def zremrangebyscore(self, *a, **kw):
+            return self
+
+        def zcard(self, *a, **kw):
+            return self
+
+        def zadd(self, *a, **kw):
+            return self
+
+        def expire(self, *a, **kw):
+            return self
+
+        async def execute(self):
+            return [0, 0, 1, True]
+
+    mock.pipeline.return_value = FakePipeline()
     return mock
 
 
 @pytest_asyncio.fixture
 async def client(db_session: AsyncSession, mock_redis) -> AsyncGenerator[AsyncClient, None]:
+    from app.core.rate_limiter import ZONES
+    ZONES.clear()
+
     async def override_get_db():
         yield db_session
 
@@ -65,11 +89,12 @@ async def client(db_session: AsyncSession, mock_redis) -> AsyncGenerator[AsyncCl
 
 @pytest_asyncio.fixture
 async def test_user_id(db_session: AsyncSession) -> str:
+    from uuid import uuid4
     from app.core.security import hash_password
     from app.models.user import User
 
     user = User(
-        email="testuser@test.com",
+        email=f"testuser-{uuid4().hex[:8]}@test.com",
         password_hash=hash_password("testpass"),
         display_name="Test User",
     )
@@ -92,12 +117,13 @@ async def test_workspace_id(db_session: AsyncSession, test_user_id: str) -> str:
 
 @pytest_asyncio.fixture
 async def auth_client(client: AsyncClient, db_session: AsyncSession) -> AsyncClient:
+    import uuid
     from app.schemas.auth import RegisterRequest
     from app.services.auth_service import register_user
 
     user = await register_user(
         db_session,
-        RegisterRequest(email="authuser@test.com", password="testpass123"),
+        RegisterRequest(email=f"authuser-{uuid.uuid4().hex[:8]}@test.com", password="testpass123"),
     )
     from app.core.security import create_access_token
 

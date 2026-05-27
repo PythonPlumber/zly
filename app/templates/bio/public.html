@@ -4,73 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ bio.title }} — Zly</title>
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Lora:ital,wght@0,300;0,400;1,300&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        logo: ['Cinzel', 'serif'],
+                        heading: ['Space Grotesk', 'sans-serif'],
+                        body: ['Lora', 'serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    },
+                    colors: {
+                        zlyDark: '#050a07',
+                        zlyCream: '#f4f0ea',
+                        zlyMuted: '#9a968f',
+                        zlyLine: 'rgba(244, 240, 234, 0.08)',
+                        zlyEmerald: '#22c55e',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --zly-pink: #ff6b9d;
-            --zly-purple: #c44dff;
-            --zly-blue: #4d9fff;
-            --zly-green: #4dffb5;
-        }
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        h1, h2, h3, h4 {
-            font-family: 'Fredoka', sans-serif;
-        }
+        body { font-family: 'Lora', serif; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; }
         {% if bio.theme == "light" %}
-        body { background: #f5f0ff; }
-        .bio-card { background: white; color: #1a1530; box-shadow: 0 8px 32px rgba(196, 77, 255, 0.1); }
-        .bio-link { background: #f5f0ff; color: #1a1530; border: 2px solid #e8dfff; }
-        .bio-link:hover { border-color: var(--zly-purple); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(196, 77, 255, 0.15); }
+        body { background: #f4f0ea; }
+        .bio-card { background: white; color: #050a07; }
+        .bio-link { background: #f4f0ea; color: #050a07; border: 1px solid rgba(5,10,7,0.1); }
+        .bio-link:hover { border-color: #22c55e; }
         {% elif bio.theme == "midnight" %}
-        body { background: #0f0b1a; }
-        .bio-card { background: #1a1530; color: #f0eaff; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); }
-        .bio-link { background: #221d3a; color: #f0eaff; border: 2px solid #2a1f4a; }
-        .bio-link:hover { border-color: var(--zly-purple); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(196, 77, 255, 0.2); }
+        body { background: radial-gradient(circle at center, #0a1610 0%, #030604 100%); }
+        .bio-card { background: rgba(10, 22, 16, 0.9); color: #f4f0ea; border: 1px solid rgba(244,240,234,0.08); }
+        .bio-link { background: rgba(10, 22, 16, 0.6); color: #f4f0ea; border: 1px solid rgba(244,240,234,0.08); }
+        .bio-link:hover { border-color: #22c55e; background: rgba(34,197,94,0.06); }
         {% else %}
-        body { background: #0a0a0a; }
-        .bio-card { background: #111; color: #f0eaff; }
-        .bio-link { background: #1a1a1a; color: #e2e8f0; border: 2px solid #222; }
-        .bio-link:hover { border-color: var(--zly-pink); transform: translateY(-2px); }
+        body { background: #050a07; }
+        .bio-card { background: rgba(5,10,7,0.95); color: #f4f0ea; border: 1px solid rgba(244,240,234,0.08); }
+        .bio-link { background: rgba(10, 22, 16, 0.5); color: #f4f0ea; border: 1px solid rgba(244,240,234,0.08); }
+        .bio-link:hover { border-color: #22c55e; }
         {% endif %}
-        .zly-brand {
-            font-family: 'Fredoka', sans-serif;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--zly-pink), var(--zly-purple), var(--zly-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+        .zly-brand { font-family: 'Cinzel', serif; font-weight: 700; }
     </style>
 </head>
 <body>
-    <div class="bio-card" style="border-radius: 24px; width: 100%; max-width: 26rem; padding: 2.5rem 2rem; text-align: center;">
+    <div class="bio-card" style="width: 100%; max-width: 26rem; padding: 2.5rem 2rem; text-align: center;">
         {% if bio.avatar_url %}
-        <img src="{{ bio.avatar_url }}" alt="" style="width: 6rem; height: 6rem; border-radius: 50%; margin: 0 auto 1rem; object-fit: cover; border: 3px solid var(--zly-purple);">
+        <img src="{{ bio.avatar_url }}" alt="" style="width: 6rem; height: 6rem; margin: 0 auto 1rem; object-fit: cover; border: 2px solid #22c55e;">
         {% endif %}
-        <h1 style="font-size: 1.75rem; margin: 0 0 0.5rem;">{{ bio.title }}</h1>
+        <h1 style="font-size: 1.5rem; letter-spacing: 0.05em; margin: 0 0 0.5rem; text-transform: uppercase;">{{ bio.title }}</h1>
         {% if bio.bio %}
-        <p style="opacity: 0.65; margin: 0 0 1.5rem; line-height: 1.5;">{{ bio.bio }}</p>
+        <p style="opacity: 0.65; margin: 0 0 1.5rem; line-height: 1.5; font-size: 0.9rem;">{{ bio.bio }}</p>
         {% endif %}
         <div style="display: flex; flex-direction: column; gap: 0.75rem;">
             {% for link in bio.links if link.is_active %}
             <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer"
                class="bio-link"
-               style="display: block; border-radius: 14px; padding: 0.875rem 1.25rem; font-weight: 600; text-decoration: none; transition: all 0.2s ease; font-family: 'Fredoka', sans-serif;">
+               style="display: block; padding: 0.875rem 1.25rem; font-weight: 600; text-decoration: none; transition: all 0.15s ease; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase;">
                 {{ link.title }}
             </a>
             {% endfor %}
         </div>
-        <p style="font-size: 0.7rem; opacity: 0.3; margin-top: 2rem;">
-            Powered by <span class="zly-brand">✦ Zly</span>
+        <p style="font-size: 0.6rem; opacity: 0.3; margin-top: 2rem; letter-spacing: 0.15em;">
+            POWERED BY <span class="zly-brand">ZLY</span>
         </p>
     </div>
 </body>

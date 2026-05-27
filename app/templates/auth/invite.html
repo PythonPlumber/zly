@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Invite — Zly{% endblock %}
+{% block content %}
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;max-width:32rem;margin:0 auto;">
+    <h1 style="font-size:1.25rem;letter-spacing:0.1em;margin-bottom:0.5rem;">Workspace Invite</h1>
+    <p style="font-size:0.7rem;color:var(--zly-muted);margin-bottom:2rem;font-family:'Space Grotesk',sans-serif;">
+        You've been invited to join <strong>{{ invite.workspace_name }}</strong> as <strong>{{ invite.role }}</strong>.
+    </p>
+    <div style="display:flex;gap:1rem;">
+        <form action="/api/v1/workspaces/{{ invite.workspace_id }}/invites/accept?token={{ token }}" method="post" hx-boost="true">
+            <button type="submit" class="zly-btn zly-btn-primary" style="font-size:0.6rem;padding:0.4rem 0.8rem;">Accept Invite</button>
+        </form>
+        <form action="/api/v1/workspaces/{{ invite.workspace_id }}/invites/decline?token={{ token }}" method="post" hx-boost="true">
+            <button type="submit" class="zly-btn zly-btn-danger" style="font-size:0.6rem;padding:0.4rem 0.8rem;">Decline</button>
+        </form>
+    </div>
+    <p style="font-size:0.55rem;color:var(--zly-muted);margin-top:1.5rem;">Invited by {{ invite.invited_by_name }}. Expires {{ invite.expires_at.strftime('%Y-%m-%d') if invite.expires_at else 'soon' }}.</p>
+</div>
+{% endblock %}

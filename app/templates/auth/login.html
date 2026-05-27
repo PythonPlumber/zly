@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in — Zly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Lora:ital,wght@0,300;0,400;1,300&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        logo: ['Cinzel', 'serif'],
+                        heading: ['Space Grotesk', 'sans-serif'],
+                        body: ['Lora', 'serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    },
+                    colors: {
+                        zlyDark: '#050a07',
+                        zlyCream: '#f4f0ea',
+                        zlyMuted: '#9a968f',
+                        zlyLine: 'rgba(244, 240, 234, 0.08)',
+                        zlyEmerald: '#22c55e',
+                        zlyEmeraldDark: '#16a34a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { --zly-bg: #050a07; --zly-cream: #f4f0ea; --zly-muted: #9a968f; --zly-line: rgba(244, 240, 234, 0.08); --zly-emerald: #22c55e; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Lora', serif;
+            background: radial-gradient(circle at center, #0a1610 0%, #030604 100%);
+            color: var(--zly-cream);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; letter-spacing: 0.05em; }
+        .auth-card {
+            background: rgba(10, 22, 16, 0.9);
+            border: 1px solid var(--zly-line);
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 24rem;
+        }
+        .auth-card h1 { font-size: 1.5rem; text-align: center; margin-bottom: 0.25rem; }
+        .auth-card .subtitle { text-align: center; color: var(--zly-muted); font-size: 0.85rem; margin-bottom: 1.5rem; font-family: 'Lora', serif; }
+        .zly-logo { font-family: 'Cinzel', serif; font-weight: 700; font-size: 2rem; text-align: center; margin-bottom: 1.5rem; color: var(--zly-cream); }
+        .zly-logo em { font-style: normal; color: var(--zly-emerald); font-family: 'Space Grotesk', sans-serif; font-size: 0.65rem; letter-spacing: 0.2em; padding-left: 0.5rem; }
+        .zly-input {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--zly-line);
+            padding: 0.625rem 0.875rem;
+            color: var(--zly-cream);
+            font-size: 0.85rem;
+            font-family: 'Lora', serif;
+            width: 100%;
+            transition: all 0.15s ease;
+            outline: none;
+        }
+        .zly-input:focus { border-color: var(--zly-emerald); box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15); }
+        .zly-input::placeholder { color: var(--zly-muted); }
+        label { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--zly-muted); display: block; margin-bottom: 0.375rem; }
+        .zly-btn {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            padding: 0.625rem 1.25rem;
+            border: 1px solid var(--zly-line);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            width: 100%;
+        }
+        .zly-btn-primary { background: var(--zly-emerald); color: #050a07; border-color: var(--zly-emerald); }
+        .zly-btn-primary:hover { background: #16a34a; border-color: #16a34a; }
+        .zly-btn-secondary { background: transparent; color: var(--zly-cream); }
+        .zly-btn-secondary:hover { border-color: rgba(34, 197, 94, 0.4); background: rgba(34, 197, 94, 0.06); }
+        .auth-link { text-align: center; margin-top: 1.25rem; font-size: 0.8rem; color: var(--zly-muted); font-family: 'Lora', serif; }
+        .auth-link a { color: var(--zly-emerald); text-decoration: none; font-weight: 500; }
+        .auth-link a:hover { text-decoration: underline; }
+        .field { margin-bottom: 1rem; }
+        .error-msg { color: #ef4444; font-size: 0.8rem; text-align: center; margin-top: 0.5rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.05em; }
+        .oauth-divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.25rem 0; color: var(--zly-muted); font-size: 0.65rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+        .oauth-divider::before, .oauth-divider::after { content: ''; flex: 1; border-top: 1px solid var(--zly-line); }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <div class="zly-logo">ZLY<em>ENTERPRISE</em></div>
+        <h1>Welcome back</h1>
+        <p class="subtitle">Log in to your account</p>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem;">
+            <a href="/api/v1/auth/oauth/google" class="zly-btn zly-btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Continue with Google
+            </a>
+            <a href="/api/v1/auth/oauth/github" class="zly-btn zly-btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none;">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                Continue with GitHub
+            </a>
+        </div>
+        <div class="oauth-divider">or email</div>
+        <form hx-post="/api/v1/auth/login" hx-target="#error-msg" hx-swap="innerHTML"
+              hx-on::before-request="document.getElementById('error-msg').style.display='none'"
+              hx-on::after-request="if(event.detail.successful){window.location.href='/dashboard'}">
+            <div class="field">
+                <label for="email">Email</label>
+                <input id="email" type="email" name="email" class="zly-input" placeholder="you@example.com" required>
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password" class="zly-input" placeholder="Enter your password" required>
+            </div>
+            <div style="text-align:right;margin-bottom:0.75rem;">
+                <a href="/auth/forgot-password" style="color:var(--zly-muted);font-family:'Space Grotesk',sans-serif;font-size:0.65rem;letter-spacing:0.05em;text-decoration:none;">Forgot password?</a>
+            </div>
+            <button type="submit" class="zly-btn zly-btn-primary">Log in</button>
+            <div id="error-msg" class="error-msg" style="display:none;"></div>
+        </form>
+        <p class="auth-link">Don't have an account? <a href="/register">Sign up</a></p>
+    </div>
+</body>
+</html>

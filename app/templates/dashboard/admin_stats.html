@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Admin — Zly{% endblock %}
+{% block content %}
+<div style="max-width: 72rem; margin: 0 auto;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">Admin Panel</h1>
+        <span class="zly-badge zly-badge-active">● SUPERUSER</span>
+    </div>
+    <div hx-get="/dashboard/admin/stats" hx-trigger="load" hx-swap="innerHTML" id="admin-stats">
+        <div style="display: flex; justify-content: center; padding: 3rem;">
+            <div class="zly-spinner"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

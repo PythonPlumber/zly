@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}API Keys — Zly{% endblock %}
+{% block content %}
+<div style="max-width: 72rem; margin: 0 auto;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">API Keys</h1>
+        <button class="zly-btn zly-btn-primary" hx-get="/dashboard/api-keys/new-form" hx-target="#key-form-modal" hx-swap="innerHTML">+ New Key</button>
+    </div>
+    <div id="key-form-modal"></div>
+    <div class="zly-card" style="padding: 0; overflow: hidden;">
+        <table class="zly-table">
+            <thead>
+                <tr><th>Name</th><th>Key</th><th>Permissions</th><th>Last Used</th><th>Created</th><th style="text-align: right;">Actions</th></tr>
+            </thead>
+            <tbody id="keys-tbody" hx-get="/dashboard/api-keys/list" hx-trigger="load every 30s" hx-swap="innerHTML">
+                <tr><td colspan="6" style="text-align: center; padding: 2rem 1rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">Loading API keys...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

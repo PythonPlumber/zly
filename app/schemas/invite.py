@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class InviteCreate(BaseModel):
-    email: str
+    email: EmailStr
     role: str = "member"
 
 

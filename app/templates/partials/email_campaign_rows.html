@@ -1,0 +1,30 @@
+{% for c in campaigns %}
+<tr>
+    <td style="font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem;">{{ c.name }}</td>
+    <td style="font-family: 'Space Mono', monospace; font-size: 0.7rem; max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.subject }}</td>
+    <td><span class="zly-badge zly-badge-{{ 'active' if c.status == 'sent' else ('warning' if c.status == 'sending' else 'hidden') }}" style="font-size: 0.55rem;">{{ c.status }}</span></td>
+    <td style="font-size: 0.65rem; font-family: 'Space Mono', monospace;">
+        {% set s = c.stats or {} %}
+        {{ s.get('sent', 0) }} sent · {{ s.get('opened', 0) }} opened · {{ s.get('clicked', 0) }} clicked
+    </td>
+    <td style="font-size: 0.65rem; color: var(--zly-muted);">{{ c.created_at.strftime('%Y-%m-%d') if c.created_at else '—' }}</td>
+    <td style="text-align: right; white-space: nowrap;">
+        {% if c.status == 'draft' %}
+        <button class="zly-btn zly-btn-primary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+                hx-post="/api/v1/workspaces/{{ workspace_id }}/email/campaigns/{{ c.id }}/send"
+                hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Send this campaign now?">Send</button>
+        <button class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+                hx-get="/dashboard/email/campaigns/{{ c.id }}/edit-form" hx-target="#email-form-modal" hx-swap="innerHTML">Edit</button>
+        {% endif %}
+        {% if c.status == 'sent' %}
+        <button class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+                hx-get="/dashboard/email/campaigns/{{ c.id }}/stats" hx-target="#email-form-modal" hx-swap="innerHTML">Stats</button>
+        {% endif %}
+        <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+                hx-delete="/api/v1/workspaces/{{ workspace_id }}/email/campaigns/{{ c.id }}"
+                hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Delete this campaign?">Delete</button>
+    </td>
+</tr>
+{% else %}
+<tr><td colspan="6" style="text-align: center; padding: 2rem 1rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">No campaigns yet.</td></tr>
+{% endfor %}

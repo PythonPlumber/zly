@@ -1,13 +1,20 @@
 {% extends "base.html" %}
-
 {% block title %}Links — Zly{% endblock %}
-
 {% block content %}
 <div style="max-width: 72rem; margin: 0 auto;">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.75rem;">Links</h1>
+        <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">Links</h1>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="zly-btn zly-btn-secondary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;" hx-get="/dashboard/links/import-form" hx-target="#import-modal-here" hx-swap="innerHTML">Import CSV</button>
+            <a href="/api/v1/workspaces/{{ workspace_id }}/links/export" class="zly-btn zly-btn-secondary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem; text-decoration: none;">Export CSV</a>
+            <button class="zly-btn zly-btn-secondary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;" hx-get="/dashboard/links/check-expiring" hx-target="#expiring-result" hx-swap="innerHTML" hx-on::after-request="document.getElementById('expiring-result').style.display='block';">Check Expiring</button>
+            <button class="zly-btn zly-btn-primary" hx-get="/dashboard/links/new-form" hx-target="#link-form-modal" hx-swap="innerHTML">+ New Link</button>
+        </div>
     </div>
-
+    <div id="import-modal-here"></div>
+    <div id="link-form-modal"></div>
+    <div id="expiring-result" style="display:none;padding:1rem;margin-bottom:1rem;font-size:0.65rem;" class="zly-card"></div>
+    <div id="edit-link-modal"></div>
     <div class="zly-card" style="padding: 0; overflow: hidden;">
         <table class="zly-table">
             <thead>
@@ -20,10 +27,10 @@
                     <th style="text-align: right;">Actions</th>
                 </tr>
             </thead>
-            <tbody id="links-tbody">
+            <tbody id="links-tbody" hx-get="/dashboard/links/list" hx-trigger="load every 30s" hx-swap="innerHTML">
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 3rem 1rem; color: var(--zly-muted);">
-                        Select a workspace to view links.
+                    <td colspan="6" style="text-align: center; padding: 3rem 1rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">
+                        LOADING LINKS...
                     </td>
                 </tr>
             </tbody>

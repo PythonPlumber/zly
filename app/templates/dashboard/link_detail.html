@@ -1,113 +1,163 @@
 {% extends "base.html" %}
-
 {% block title %}Link — Zly{% endblock %}
-
 {% block head %}
 <meta name="link-id" content="{{ link.id }}">
+<style>
+.tab-btn.active-tab { background: rgba(34,197,94,0.08); color: var(--zly-emerald); border-bottom: 2px solid var(--zly-emerald); }
+.tab-btn { padding: 0.625rem 1.25rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zly-muted); cursor: pointer; border: none; background: none; transition: all 0.15s ease; border-bottom: 2px solid transparent; }
+.tab-btn:hover { color: var(--zly-cream); background: rgba(255,255,255,0.02); }
+.tab-panel { display: none; }
+.tab-panel.active-panel { display: block; }
+</style>
 {% endblock %}
-
 {% block content %}
 <div style="max-width: 72rem; margin: 0 auto;">
     <div style="margin-bottom: 1.5rem;">
-        <a href="/dashboard/links" style="color: var(--zly-purple); font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.375rem;">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        <a href="/dashboard/links" style="color: var(--zly-emerald); font-size: 0.7rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; display: inline-flex; align-items: center; gap: 0.375rem;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             Back to links
         </a>
-        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
-            <h1 style="font-size: 1.75rem;">{{ link.title or link.short_code }}</h1>
-            <a href="/api/v1/links/{{ link.id }}/qrcode" download="qr-{{ link.short_code }}.png"
-               class="zly-btn zly-btn-secondary" style="font-size: 0.8rem;">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.75rem;">
+            <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">{{ link.title or link.short_code }}</h1>
+            <button onclick="downloadQR('{{ link.id }}', 'qr-{{ link.short_code }}')"
+               class="zly-btn zly-btn-secondary" style="font-size: 0.65rem; padding: 0.4rem 0.85rem;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 QR Code
-            </a>
+            </button>
+            <button class="zly-btn zly-btn-secondary" style="font-size: 0.65rem; padding: 0.4rem 0.85rem;" onclick="copyToClipboard('{{ link.short_code }}')">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                Copy
+            </button>
         </div>
-        <p style="color: var(--zly-muted); font-size: 0.875rem; word-break: break-all; margin-top: 0.375rem;">{{ link.destination_url }}</p>
-        <code style="color: var(--zly-pink); font-size: 0.875rem;">/{{ link.short_code }}</code>
+        <p style="color: var(--zly-muted); font-size: 0.85rem; word-break: break-all; margin-top: 0.5rem; font-family: 'Lora', serif;">{{ link.destination_url }}</p>
+        <code style="color: var(--zly-emerald); font-size: 0.8rem; font-family: 'Space Mono', monospace;">/{{ link.short_code }}</code>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;" id="stats-cards">
-        <div class="zly-card">
-            <p style="color: var(--zly-muted); font-size: 0.8rem; font-family: 'Fredoka', sans-serif;">Total Clicks</p>
-            <p style="font-size: 2rem; font-weight: 700; font-family: 'Fredoka', sans-serif;" id="total-clicks">—</p>
+    <div style="border-bottom: 1px solid var(--zly-line); margin-bottom: 1.5rem; display: flex;">
+        <button class="tab-btn active-tab" onclick="switchTab('analytics', this)">Analytics</button>
+        <button class="tab-btn" onclick="switchTab('variants', this)">A/B Variants</button>
+    </div>
+    <div id="variant-form-modal"></div>
+
+    <div id="tab-analytics" class="tab-panel active-panel">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;" id="stats-cards">
+            <div class="zly-card">
+                <p style="color: var(--zly-muted); font-size: 0.6rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.12em; text-transform: uppercase;">Total Clicks</p>
+                <p style="font-size: 1.75rem; font-weight: 700; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.05em;" id="total-clicks">—</p>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="zly-card">
+                <h3 style="font-size: 0.6rem; letter-spacing: 0.15em; color: var(--zly-muted); margin-bottom: 1rem;">Clicks Over Time</h3>
+                <canvas id="clicksChart" height="200"></canvas>
+            </div>
+            <div class="zly-card">
+                <h3 style="font-size: 0.6rem; letter-spacing: 0.15em; color: var(--zly-muted); margin-bottom: 1rem;">Browsers</h3>
+                <canvas id="browsersChart" height="200"></canvas>
+            </div>
+            <div class="zly-card">
+                <h3 style="font-size: 0.6rem; letter-spacing: 0.15em; color: var(--zly-muted); margin-bottom: 1rem;">Devices</h3>
+                <canvas id="devicesChart" height="200"></canvas>
+            </div>
+            <div class="zly-card">
+                <h3 style="font-size: 0.6rem; letter-spacing: 0.15em; color: var(--zly-muted); margin-bottom: 1rem;">Top Referrers</h3>
+                <div id="referrers-list" style="font-size: 0.8rem;"></div>
+            </div>
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-        <div class="zly-card">
-            <h3 style="font-size: 0.8rem; color: var(--zly-muted); margin-bottom: 1rem;">Clicks Over Time</h3>
-            <canvas id="clicksChart" height="200"></canvas>
+    <div id="tab-variants" class="tab-panel">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <h3 style="font-size: 0.65rem; letter-spacing: 0.15em; color: var(--zly-muted);">Variants</h3>
+            <button class="zly-btn zly-btn-primary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;"
+                    hx-get="/dashboard/links/{{ link.id }}/variants/new-form" hx-target="#variant-form-modal" hx-swap="innerHTML">+ Add Variant</button>
         </div>
-        <div class="zly-card">
-            <h3 style="font-size: 0.8rem; color: var(--zly-muted); margin-bottom: 1rem;">Browsers</h3>
-            <canvas id="browsersChart" height="200"></canvas>
-        </div>
-        <div class="zly-card">
-            <h3 style="font-size: 0.8rem; color: var(--zly-muted); margin-bottom: 1rem;">Devices</h3>
-            <canvas id="devicesChart" height="200"></canvas>
-        </div>
-        <div class="zly-card">
-            <h3 style="font-size: 0.8rem; color: var(--zly-muted); margin-bottom: 1rem;">Top Referrers</h3>
-            <div id="referrers-list" style="font-size: 0.875rem;"></div>
+        <div class="zly-card" style="padding: 0; overflow: hidden;">
+            <table class="zly-table">
+                <thead>
+                    <tr><th>Destination</th><th>Weight</th><th>Type</th><th style="text-align: right;">Actions</th></tr>
+                </thead>
+                <tbody id="variants-tbody" hx-get="/dashboard/links/{{ link.id }}/variants/list" hx-trigger="load" hx-swap="innerHTML">
+                    <tr><td colspan="4" style="text-align: center; padding: 2rem 1rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">Loading variants...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <script>
-const linkId = document.querySelector('meta[name="link-id"]').content;
-
-fetch(`/api/v1/links/${linkId}/analytics`)
-    .then(r => r.json())
-    .then(data => {
-        document.getElementById('total-clicks').textContent = data.total_clicks;
-
-        new Chart(document.getElementById('clicksChart'), {
-            type: 'line',
-            data: {
-                labels: data.clicks_over_time.map(d => d.date),
-                datasets: [{
-                    label: 'Clicks',
-                    data: data.clicks_over_time.map(d => d.count),
-                    borderColor: '#ff6b9d',
-                    backgroundColor: 'rgba(255, 107, 157, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active-panel'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active-tab'); });
+    document.getElementById('tab-' + tabId).classList.add('active-panel');
+    btn.classList.add('active-tab');
+}
+function downloadQR(linkId, filename) {
+    fetch('/api/v1/links/' + linkId + '/qrcode', { credentials: 'same-origin' })
+        .then(function(r) { if (!r.ok) throw new Error(); return r.blob(); })
+        .then(function(blob) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url; a.download = filename + '.png';
+            document.body.appendChild(a); a.click();
+            a.remove(); URL.revokeObjectURL(url);
+        })
+        .catch(function() { alert('Failed to download QR code'); });
+}
+(function(){
+    var linkId = document.querySelector('meta[name="link-id"]').content;
+    if (!linkId) { return; }
+    fetch('/api/v1/links/' + linkId + '/analytics')
+        .then(function(r) { if (!r.ok) throw new Error('Failed to load analytics'); return r.json(); })
+        .then(function(data) {
+            document.getElementById('total-clicks').textContent = data.total_clicks;
+            new Chart(document.getElementById('clicksChart'), {
+                type: 'line', data: {
+                    labels: data.clicks_over_time.map(function(d) { return d.date; }),
+                    datasets: [{ label: 'Clicks', data: data.clicks_over_time.map(function(d) { return d.count; }), borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.08)', fill: true, tension: 0.4 }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#9a968f' } }, y: { ticks: { color: '#9a968f' } } } }
+            });
+            new Chart(document.getElementById('browsersChart'), {
+                type: 'doughnut', data: {
+                    labels: data.browsers.map(function(b) { return b.browser; }),
+                    datasets: [{ data: data.browsers.map(function(b) { return b.count; }), backgroundColor: ['#22c55e', '#16a34a', '#4ade80', '#86efac', '#bbf7d0'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#9a968f' } } } }
+            });
+            new Chart(document.getElementById('devicesChart'), {
+                type: 'doughnut', data: {
+                    labels: data.devices.map(function(d) { return d.device; }),
+                    datasets: [{ data: data.devices.map(function(d) { return d.count; }), backgroundColor: ['#22c55e', '#4ade80', '#86efac'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#9a968f' } } } }
+            });
+            var refList = document.getElementById('referrers-list');
+            refList.textContent = '';
+            if (data.top_referrers.length === 0) {
+                var p = document.createElement('p');
+                p.style.cssText = "color:var(--zly-muted);font-family:'Space Grotesk',sans-serif;font-size:0.65rem;letter-spacing:0.05em;";
+                p.textContent = 'NO REFERRER DATA YET';
+                refList.appendChild(p);
+            } else {
+                for (var i = 0; i < data.top_referrers.length; i++) {
+                    var r = data.top_referrers[i];
+                    var row = document.createElement('div');
+                    row.style.cssText = 'display:flex;justify-content:space-between;padding:0.375rem 0;border-bottom:1px solid rgba(244,240,234,0.06);';
+                    var domain = document.createElement('span');
+                    domain.textContent = r.domain;
+                    var count = document.createElement('span');
+                    count.style.cssText = "color:var(--zly-muted);font-family:'Space Mono',monospace;font-size:0.7rem;";
+                    count.textContent = String(r.count);
+                    row.appendChild(domain); row.appendChild(count);
+                    refList.appendChild(row);
+                }
+            }
+        })
+        .catch(function() {
+            document.getElementById('total-clicks').textContent = 'ERR';
+            document.querySelectorAll('#stats-cards .zly-card').forEach(function(c) { c.style.borderColor = 'rgba(239,68,68,0.3)'; });
         });
-
-        new Chart(document.getElementById('browsersChart'), {
-            type: 'doughnut',
-            data: {
-                labels: data.browsers.map(b => b.browser),
-                datasets: [{
-                    data: data.browsers.map(b => b.count),
-                    backgroundColor: ['#ff6b9d', '#c44dff', '#4d9fff', '#4dffb5', '#ffd64d']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#9a8abf' } } } }
-        });
-
-        new Chart(document.getElementById('devicesChart'), {
-            type: 'doughnut',
-            data: {
-                labels: data.devices.map(d => d.device),
-                datasets: [{
-                    data: data.devices.map(d => d.count),
-                    backgroundColor: ['#ff6b9d', '#4d9fff', '#4dffb5']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#9a8abf' } } } }
-        });
-
-        const refList = document.getElementById('referrers-list');
-        if (data.top_referrers.length === 0) {
-            refList.innerHTML = '<p style="color: var(--zly-muted);">No referrer data yet</p>';
-        } else {
-            refList.innerHTML = data.top_referrers.map(r =>
-                `<div style="display: flex; justify-content: space-between; padding: 0.375rem 0;"><span>${r.domain}</span><span style="color: var(--zly-muted);">${r.count}</span></div>`
-            ).join('');
-        }
-    });
+})();
 </script>
 {% endblock %}

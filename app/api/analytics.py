@@ -30,7 +30,7 @@ async def api_link_analytics(
     link = await get_link_by_id(db, link_id)
     if not link:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
-    await verify_workspace_access(db, link.workspace_id, current_user)
+    await verify_workspace_access(db, link.workspace_id, current_user, required_permission="analytics:view")
 
     return ClickStats(
         total_clicks=await get_total_clicks(db, link_id),
@@ -49,5 +49,5 @@ async def api_workspace_summary(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await verify_workspace_access(db, workspace_id, current_user)
+    await verify_workspace_access(db, workspace_id, current_user, required_permission="analytics:view")
     return await get_workspace_summary(db, workspace_id, days)

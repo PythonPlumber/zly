@@ -1,0 +1,15 @@
+<td style="font-weight: 500; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem;">{{ tag.name }}</td>
+<td>
+    <span style="display: inline-block; width: 0.75rem; height: 0.75rem; background: {{ tag.color or '#6366f1' }}; vertical-align: middle; margin-right: 0.25rem;"></span>
+    <code style="font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--zly-muted);">{{ tag.color or '#6366f1' }}</code>
+</td>
+<td style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--zly-muted);">
+    {{ tag.created_at.strftime('%Y-%m-%d') if tag.created_at else '' }}
+</td>
+<td style="text-align: right; white-space: nowrap;">
+    <button class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+            hx-get="/dashboard/tags/{{ tag.id }}/edit-form" hx-target="#tag-form-modal" hx-swap="innerHTML">Edit</button>
+    <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+            hx-delete="/api/v1/workspaces/{{ workspace_id }}/tags/{{ tag.id }}" hx-target="closest tr" hx-swap="outerHTML"
+            hx-confirm="Delete this tag?">Delete</button>
+</td>

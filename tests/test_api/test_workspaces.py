@@ -20,7 +20,7 @@ async def test_list_workspaces(auth_client: AsyncClient):
     await auth_client.post("/api/v1/workspaces", json={"name": "WS 2"})
     response = await auth_client.get("/api/v1/workspaces")
     assert response.status_code == 200
-    assert len(response.json()) == 3
+    assert len(response.json()["items"]) == 3
 
 
 @pytest.mark.asyncio

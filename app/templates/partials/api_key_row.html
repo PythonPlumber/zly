@@ -1,0 +1,15 @@
+<td style="font-weight: 500; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem;">{{ key.name }}</td>
+<td>
+    <code style="font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--zly-muted); cursor: pointer;"
+          onclick="copyToClipboard('{{ key.prefix }}...')">{{ key.prefix }}••••••••</code>
+</td>
+<td style="font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--zly-muted);">{{ key.permissions or 'all' }}</td>
+<td style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--zly-muted);">{{ key.last_used_at.strftime('%Y-%m-%d') if key.last_used_at else 'Never' }}</td>
+<td style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--zly-muted);">{{ key.created_at.strftime('%Y-%m-%d') if key.created_at else '' }}</td>
+<td style="text-align: right; white-space: nowrap;">
+    <button class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+            hx-get="/dashboard/api-keys/{{ key.id }}/edit-form" hx-target="#key-form-modal" hx-swap="innerHTML">Edit</button>
+    <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+            hx-delete="/api/v1/workspaces/{{ workspace_id }}/api-keys/{{ key.id }}" hx-target="closest tr" hx-swap="outerHTML"
+            hx-confirm="Revoke this API key?">Revoke</button>
+</td>

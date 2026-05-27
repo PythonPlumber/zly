@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}500 — Server Error{% endblock %}
+{% block content %}
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;">
+    <h1 style="font-size:4rem;font-family:'Space Mono',monospace;color:#ff6b35;margin-bottom:0.5rem;">500</h1>
+    <p style="font-size:0.8rem;font-family:'Space Grotesk',sans-serif;color:var(--zly-muted);letter-spacing:0.1em;margin-bottom:1.5rem;">INTERNAL SERVER ERROR</p>
+    <p style="font-size:0.65rem;color:var(--zly-muted);margin-bottom:1rem;">Something went wrong. Our team has been notified.</p>
+    <a href="/dashboard" class="zly-btn zly-btn-primary" style="font-size:0.6rem;padding:0.4rem 0.8rem;text-decoration:none;">Return to Dashboard</a>
+</div>
+{% endblock %}

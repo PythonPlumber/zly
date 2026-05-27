@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Webhooks — Zly{% endblock %}
+{% block content %}
+<div style="max-width: 72rem; margin: 0 auto;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">Webhooks</h1>
+        <button class="zly-btn zly-btn-primary" hx-get="/dashboard/webhooks/new-form" hx-target="#webhook-form-modal" hx-swap="innerHTML">+ New Webhook</button>
+    </div>
+    <div id="webhook-form-modal"></div>
+    <div class="zly-card" style="padding: 0; overflow: hidden;">
+        <table class="zly-table">
+            <thead>
+                <tr><th>Name</th><th>URL</th><th>Events</th><th>Active</th><th style="text-align: right;">Actions</th></tr>
+            </thead>
+            <tbody id="webhooks-tbody" hx-get="/dashboard/webhooks/list" hx-trigger="load every 30s" hx-swap="innerHTML">
+                <tr><td colspan="5" style="text-align: center; padding: 2rem 1rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">Loading webhooks...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

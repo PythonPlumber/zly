@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Settings — Zly{% endblock %}
+{% block content %}
+<div style="max-width: 48rem; margin: 0 auto;">
+    <h1 style="font-size: 1.25rem; letter-spacing: 0.1em; margin-bottom: 1.5rem;">Settings</h1>
+
+    <div class="zly-card" style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 0.7rem; letter-spacing: 0.15em; margin-bottom: 1rem; color: var(--zly-muted);">Profile</h3>
+        <form hx-patch="/api/v1/users/me" hx-target="body" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+                <label>Email</label>
+                <input type="email" value="{{ user.email }}" class="zly-input" disabled style="opacity: 0.5;">
+            </div>
+            <div>
+                <label>Display Name</label>
+                <input type="text" name="display_name" value="{{ user.display_name or '' }}" class="zly-input" placeholder="Your display name">
+            </div>
+            <button type="submit" class="zly-btn zly-btn-primary" style="align-self: flex-start;">Save Profile</button>
+        </form>
+    </div>
+
+    <div class="zly-card" style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 0.7rem; letter-spacing: 0.15em; margin-bottom: 1rem; color: var(--zly-muted);">Change Password</h3>
+        <form hx-post="/api/v1/users/me/change-password" hx-target="body" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+                <label>Current Password</label>
+                <input type="password" name="old_password" required class="zly-input">
+            </div>
+            <div>
+                <label>New Password</label>
+                <input type="password" name="new_password" required class="zly-input" minlength="8">
+            </div>
+            <button type="submit" class="zly-btn zly-btn-primary" style="align-self: flex-start;">Change Password</button>
+        </form>
+    </div>
+
+    <div class="zly-card" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <h3 style="font-size: 0.7rem; letter-spacing: 0.15em; color: var(--zly-muted);">Sessions</h3>
+            <button class="zly-btn zly-btn-danger" style="font-size: 0.65rem; padding: 0.35rem 0.75rem;"
+                    hx-post="/api/v1/sessions/revoke-all" hx-target="#sessions-list"
+                    hx-confirm="Revoke all other sessions? You will be logged out elsewhere.">
+                Revoke All
+            </button>
+        </div>
+        <div id="sessions-list" hx-get="/dashboard/sessions" hx-trigger="load" hx-swap="innerHTML">
+            <div style="padding: 1rem 0; text-align: center; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">Loading sessions...</div>
+        </div>
+    </div>
+
+    <div class="zly-card">
+        <h3 style="font-size: 0.7rem; letter-spacing: 0.15em; margin-bottom: 1rem; color: var(--zly-muted);">OAuth Connections</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border: 1px solid var(--zly-line);">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    <span style="font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; letter-spacing: 0.05em;">Google</span>
+                </div>
+                {% if user.oauth_provider == 'google' %}
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--zly-emerald);">Connected</span>
+                    <a href="/api/v1/auth/oauth/google?disconnect=1" class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.2rem 0.5rem;">Disconnect</a>
+                </div>
+                {% else %}
+                <a href="/api/v1/auth/oauth/google" class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.2rem 0.5rem;">Connect</a>
+                {% endif %}
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border: 1px solid var(--zly-line);">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span style="font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; letter-spacing: 0.05em;">GitHub</span>
+                </div>
+                {% if user.oauth_provider == 'github' %}
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--zly-emerald);">Connected</span>
+                    <a href="/api/v1/auth/oauth/github?disconnect=1" class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.2rem 0.5rem;">Disconnect</a>
+                </div>
+                {% else %}
+                <a href="/api/v1/auth/oauth/github" class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.2rem 0.5rem;">Connect</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if user.oauth_provider and not user.password_hash %}
+    <div class="zly-card" style="margin-top: 1.5rem;">
+        <h3 style="font-size: 0.7rem; letter-spacing: 0.15em; margin-bottom: 1rem; color: var(--zly-muted);">Set Password</h3>
+        <p style="font-family: 'Space Grotesk', sans-serif; font-size: 0.65rem; color: var(--zly-muted); margin-bottom: 1rem;">
+            You signed in via OAuth. Set a password to enable email login.
+        </p>
+        <form hx-post="/api/v1/users/me/set-password" hx-target="body" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+                <label>New Password</label>
+                <input type="password" name="new_password" required class="zly-input" minlength="8">
+            </div>
+            <button type="submit" class="zly-btn zly-btn-primary" style="align-self: flex-start;">Set Password</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="zly-card grid-border" style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 0.7rem; letter-spacing: 0.15em; margin-bottom: 0.5rem; color: var(--zly-muted);">COMPLIANCE &amp; SECURITY</h3>
+        <p style="font-family: 'Space Grotesk', sans-serif; font-size: 0.65rem; color: var(--zly-muted); margin-bottom: 1rem;">
+            Your data never leaves your infrastructure. Zly's architecture ensures compliance by design.
+        </p>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="border: 1px solid var(--zly-line); background: rgba(34,197,94,0.03); padding: 0.6rem 0.9rem; border-radius: 0.375rem;">
+                <span style="font-family: 'Space Grotesk', sans-serif; font-size: 0.55rem; letter-spacing: 0.15em; color: var(--zly-muted);">GDPR SOVEREIGN</span>
+            </div>
+            <div style="border: 1px solid var(--zly-line); background: rgba(34,197,94,0.03); padding: 0.6rem 0.9rem; border-radius: 0.375rem;">
+                <span style="font-family: 'Space Grotesk', sans-serif; font-size: 0.55rem; letter-spacing: 0.15em; color: var(--zly-muted);">HIPAA COMPATIBLE</span>
+            </div>
+            <div style="border: 1px solid var(--zly-line); background: rgba(34,197,94,0.03); padding: 0.6rem 0.9rem; border-radius: 0.375rem;">
+                <span style="font-family: 'Space Grotesk', sans-serif; font-size: 0.55rem; letter-spacing: 0.15em; color: var(--zly-muted);">ZERO-KNOWLEDGE ARCHITECTURE</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

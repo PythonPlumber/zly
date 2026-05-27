@@ -1,24 +1,73 @@
 {% extends "base.html" %}
-
 {% block title %}Dashboard — Zly{% endblock %}
-
 {% block content %}
+<style>
+.tab-btn.active-tab { background: rgba(34,197,94,0.08); color: var(--zly-emerald); border-bottom: 2px solid var(--zly-emerald); }
+.tab-btn { padding: 0.625rem 1.25rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--zly-muted); cursor: pointer; border: none; background: none; transition: all 0.15s ease; border-bottom: 2px solid transparent; }
+.tab-btn:hover { color: var(--zly-cream); background: rgba(255,255,255,0.02); }
+.tab-panel { display: none; }
+.tab-panel.active-panel { display: block; }
+</style>
 <div style="max-width: 72rem; margin: 0 auto;">
-    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.75rem;">Dashboard</h1>
-        <div style="width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--zly-green); animation: pulse-glow 2s ease-in-out infinite;"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">Dashboard</h1>
+            <div style="width: 0.4rem; height: 0.4rem; background: var(--zly-emerald); animation: pulse-glow 2s ease-in-out infinite;"></div>
+        </div>
+        {% if workspaces and workspaces|length > 1 %}
+        <select id="workspace-select" class="zly-input" style="width: auto; font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;"
+                hx-get="/dashboard" hx-target="body" hx-swap="outerHTML"
+                hx-on::before-request="window.location.href='/dashboard?ws='+this.value">
+            {% for ws in workspaces %}
+            <option value="{{ ws.id }}" {% if default_ws and default_ws.id == ws.id %}selected{% endif %}>{{ ws.name }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
     </div>
 
-{% if default_ws %}
-    <div hx-get="/api/v1/workspaces/{{ default_ws.id }}/analytics/summary" hx-trigger="load">
-        <div style="display: flex; justify-content: center; padding: 3rem 0;">
-            <div class="zly-spinner"></div>
+    <div style="border-bottom: 1px solid var(--zly-line); margin-bottom: 1.5rem; display: flex;">
+        <button class="tab-btn active-tab" onclick="switchDashTab('summary', this)">Summary</button>
+        <button class="tab-btn" onclick="switchDashTab('top-links', this)">Top Links</button>
+    </div>
+
+    <div id="tab-summary" class="tab-panel active-panel">
+    {% if default_ws %}
+        <div hx-get="/dashboard/summary" hx-trigger="load" hx-swap="outerHTML">
+            <div style="display: flex; justify-content: center; padding: 3rem 0;">
+                <div class="zly-spinner"></div>
+            </div>
         </div>
+    {% else %}
+        <div class="zly-card" style="text-align: center; padding: 3rem;">
+            <p style="color: var(--zly-muted); font-size: 0.9rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.05em;">
+                NO WORKSPACE FOUND. CREATE ONE TO GET STARTED.
+            </p>
+        </div>
+    {% endif %}
     </div>
-{% else %}
-    <div class="zly-card" style="text-align: center; padding: 3rem;">
-        <p style="color: var(--zly-muted); font-size: 1.1rem;">No workspace found. Create one to get started.</p>
+
+    <div id="tab-top-links" class="tab-panel">
+    {% if default_ws %}
+        <div hx-get="/dashboard/top-links" hx-trigger="load" hx-swap="outerHTML">
+            <div style="display: flex; justify-content: center; padding: 3rem 0;">
+                <div class="zly-spinner"></div>
+            </div>
+        </div>
+    {% else %}
+        <div class="zly-card" style="text-align: center; padding: 3rem;">
+            <p style="color: var(--zly-muted); font-size: 0.9rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.05em;">
+                NO WORKSPACE FOUND.
+            </p>
+        </div>
+    {% endif %}
     </div>
-{% endif %}
 </div>
+<script>
+function switchDashTab(tabName, btn) {
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active-panel'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active-tab'); });
+    document.getElementById('tab-' + tabName).classList.add('active-panel');
+    btn.classList.add('active-tab');
+}
+</script>
 {% endblock %}

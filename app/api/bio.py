@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_db
@@ -23,6 +23,7 @@ from app.services.bio_service import (
     update_bio_link,
     update_bio_page,
 )
+from app.services.audit_service import log_audit_event
 from app.services.workspace_service import verify_workspace_access
 from app.core.security import get_current_user
 
@@ -41,14 +42,24 @@ async def get_public_bio_page(slug: str, db: AsyncSession = Depends(get_db)):
 async def create_workspace_bio(
     workspace_id: str,
     data: BioPageCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await verify_workspace_access(db, workspace_id, user, require_owner=True)
+    await verify_workspace_access(db, workspace_id, user, require_owner=True, required_permission="bio:manage")
     existing = await get_bio_page(db, workspace_id)
     if existing:
         raise HTTPException(status_code=409, detail="Bio page already exists for this workspace")
     bio = await create_bio_page(db, workspace_id, data)
+    await log_audit_event(
+        db,
+        action="create",
+        resource_type="bio_page",
+        resource_id=bio.id,
+        workspace_id=workspace_id,
+        user_id=user.id,
+        ip_address=request.client.host if request.client else None,
+    )
     return bio
 
 
@@ -58,7 +69,7 @@ async def get_workspace_bio(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await verify_workspace_access(db, workspace_id, user)
+    await verify_workspace_access(db, workspace_id, user, required_permission="bio:manage")
     bio = await get_bio_page(db, workspace_id)
     if not bio:
         raise HTTPException(status_code=404, detail="Bio page not found")
@@ -69,26 +80,46 @@ async def get_workspace_bio(
 async def update_workspace_bio(
     workspace_id: str,
     data: BioPageUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await verify_workspace_access(db, workspace_id, user, require_owner=True)
+    await verify_workspace_access(db, workspace_id, user, require_owner=True, required_permission="bio:manage")
     bio = await update_bio_page(db, workspace_id, data)
     if not bio:
         raise HTTPException(status_code=404, detail="Bio page not found")
+    await log_audit_event(
+        db,
+        action="update",
+        resource_type="bio_page",
+        resource_id=bio.id,
+        workspace_id=workspace_id,
+        user_id=user.id,
+        ip_address=request.client.host if request.client else None,
+    )
     return bio
 
 
 @router.delete("/workspaces/{workspace_id}/bio")
 async def delete_workspace_bio(
     workspace_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await verify_workspace_access(db, workspace_id, user, require_owner=True)
+    await verify_workspace_access(db, workspace_id, user, require_owner=True, required_permission="bio:manage")
     deleted = await delete_bio_page(db, workspace_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Bio page not found")
+    await log_audit_event(
+        db,
+        action="delete",
+        resource_type="bio_page",
+        resource_id=workspace_id,
+        workspace_id=workspace_id,
+        user_id=user.id,
+        ip_address=request.client.host if request.client else None,
+    )
     return {"detail": "Bio page deleted"}
 
 
@@ -96,14 +127,24 @@ async def delete_workspace_bio(
 async def add_link_to_bio(
     workspace_id: str,
     data: BioLinkCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await verify_workspace_access(db, workspace_id, user, require_owner=True)
+    await verify_workspace_access(db, workspace_id, user, require_owner=True, required_permission="bio:manage")
     bio = await get_bio_page(db, workspace_id)
     if not bio:
         raise HTTPException(status_code=404, detail="Bio page not found")
     bio_link = await add_bio_link(db, bio.id, data)
+    await log_audit_event(
+        db,
+        action="create",
+        resource_type="bio_link",
+        resource_id=bio_link.id,
+        workspace_id=workspace_id,
+        user_id=user.id,
+        ip_address=request.client.host if request.client else None,
+    )
     return bio_link
 
 
@@ -112,13 +153,23 @@ async def update_bio_link_endpoint(
     workspace_id: str,
     link_id: str,
     data: BioLinkUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await verify_workspace_access(db, workspace_id, user, require_owner=True)
+    await verify_workspace_access(db, workspace_id, user, require_owner=True, required_permission="bio:manage")
     bio_link = await update_bio_link(db, link_id, data)
     if not bio_link:
         raise HTTPException(status_code=404, detail="Bio link not found")
+    await log_audit_event(
+        db,
+        action="update",
+        resource_type="bio_link",
+        resource_id=link_id,
+        workspace_id=workspace_id,
+        user_id=user.id,
+        ip_address=request.client.host if request.client else None,
+    )
     return bio_link
 
 
@@ -126,13 +177,23 @@ async def update_bio_link_endpoint(
 async def remove_bio_link_endpoint(
     workspace_id: str,
     link_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await verify_workspace_access(db, workspace_id, user, require_owner=True)
+    await verify_workspace_access(db, workspace_id, user, require_owner=True, required_permission="bio:manage")
     deleted = await remove_bio_link(db, link_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Bio link not found")
+    await log_audit_event(
+        db,
+        action="delete",
+        resource_type="bio_link",
+        resource_id=link_id,
+        workspace_id=workspace_id,
+        user_id=user.id,
+        ip_address=request.client.host if request.client else None,
+    )
     return {"detail": "Bio link removed"}
 
 
@@ -143,7 +204,7 @@ async def reorder_bio_links_endpoint(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    await verify_workspace_access(db, workspace_id, user, require_owner=True)
+    await verify_workspace_access(db, workspace_id, user, require_owner=True, required_permission="bio:manage")
     bio = await get_bio_page(db, workspace_id)
     if not bio:
         raise HTTPException(status_code=404, detail="Bio page not found")

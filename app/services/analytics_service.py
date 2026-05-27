@@ -1,22 +1,75 @@
+import json
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.logging import get_logger
 from app.models.click import Click
 from app.models.link import Link
 
+logger = get_logger(__name__)
+
+_CACHE_TTL = 300  # 5 minutes
+
+
+async def _cache_get(key: str):
+    try:
+        from app.core.redis import get_redis
+        r = await get_redis()
+        val = await r.get(key)
+        if val:
+            return json.loads(val)
+    except Exception:
+        pass
+    return None
+
+
+async def _cache_set(key: str, value, ttl: int = _CACHE_TTL):
+    try:
+        from app.core.redis import get_redis
+        r = await get_redis()
+        await r.setex(key, ttl, json.dumps(value))
+    except Exception:
+        pass
+
+
+async def _cache_del(key: str):
+    try:
+        from app.core.redis import get_redis
+        r = await get_redis()
+        await r.delete(key)
+    except Exception:
+        pass
+
+
+async def invalidate_analytics_cache(link_id: str, workspace_id: str | None = None) -> None:
+    await _cache_del(f"analytics:link:{link_id}:total_clicks")
+    await _cache_del(f"analytics:link:{link_id}:clicks_over_time")
+    if workspace_id:
+        await _cache_del(f"analytics:workspace:{workspace_id}:summary")
+
 
 async def get_total_clicks(db: AsyncSession, link_id: str) -> int:
+    cache_key = f"analytics:link:{link_id}:total_clicks"
+    cached = await _cache_get(cache_key)
+    if cached is not None:
+        return cached
     result = await db.execute(
         select(func.count(Click.id)).where(Click.link_id == link_id)
     )
-    return result.scalar() or 0
+    total = result.scalar() or 0
+    await _cache_set(cache_key, total)
+    return total
 
 
 async def get_clicks_over_time(
     db: AsyncSession, link_id: str, days: int = 30
 ) -> list[dict]:
+    cache_key = f"analytics:link:{link_id}:clicks_over_time:{days}"
+    cached = await _cache_get(cache_key)
+    if cached is not None:
+        return cached
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     result = await db.execute(
         select(
@@ -27,7 +80,9 @@ async def get_clicks_over_time(
         .group_by(func.date(Click.timestamp))
         .order_by(func.date(Click.timestamp))
     )
-    return [{"date": str(row.date), "count": row.count} for row in result]
+    items = [{"date": str(row.date), "count": row.count} for row in result]
+    await _cache_set(cache_key, items)
+    return items
 
 
 async def get_top_referrers(
@@ -80,6 +135,10 @@ async def get_os_stats(db: AsyncSession, link_id: str) -> list[dict]:
 async def get_workspace_summary(
     db: AsyncSession, workspace_id: str, days: int = 7
 ) -> dict:
+    cache_key = f"analytics:workspace:{workspace_id}:summary:{days}"
+    cached = await _cache_get(cache_key)
+    if cached is not None:
+        return cached
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     result = await db.execute(
         select(
@@ -95,7 +154,7 @@ async def get_workspace_summary(
         .order_by(func.count(Click.id).desc())
     )
     rows = result.all()
-    return {
+    summary = {
         "total_clicks": sum(r.clicks for r in rows),
         "total_links": len(rows),
         "links": [
@@ -109,3 +168,31 @@ async def get_workspace_summary(
             for r in rows
         ],
     }
+    await _cache_set(cache_key, summary)
+    return summary
+
+
+async def get_variant_stats(db: AsyncSession, variant_id: str) -> dict:
+    from app.models.click import Click
+    from sqlalchemy import func
+    count_result = await db.execute(
+        select(func.count()).where(Click.variant_id == variant_id)
+    )
+    total = count_result.scalar() or 0
+    return {"variant_id": variant_id, "clicks": total}
+
+
+async def get_variant_clicks_over_time(db: AsyncSession, variant_id: str, days: int = 30) -> list[dict]:
+    from app.models.click import Click
+    from app.core.dependencies import get_redis_client
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    result = await db.execute(
+        select(
+            func.date(Click.timestamp).label("date"),
+            func.count().label("count"),
+        )
+        .where(Click.variant_id == variant_id, Click.timestamp >= cutoff)
+        .group_by(func.date(Click.timestamp))
+        .order_by(func.date(Click.timestamp))
+    )
+    return [{"date": str(r.date), "clicks": r.count} for r in result]

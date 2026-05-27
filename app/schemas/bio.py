@@ -2,15 +2,19 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.schemas.link import _validate_url_scheme
 
 
 class BioLinkCreate(BaseModel):
     link_id: str
     title: str = Field(..., min_length=1, max_length=200)
-    url: str = Field(..., min_length=1)
+    url: str
     position: int = 0
     is_active: bool = True
+
+    _validate_url = field_validator("url")(_validate_url_scheme)
 
 
 class BioLinkUpdate(BaseModel):
@@ -18,6 +22,8 @@ class BioLinkUpdate(BaseModel):
     url: Optional[str] = None
     position: Optional[int] = None
     is_active: Optional[bool] = None
+
+    _validate_url = field_validator("url")(_validate_url_scheme)
 
 
 class BioLinkResponse(BaseModel):

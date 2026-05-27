@@ -96,7 +96,7 @@ async def test_list_domains(client: AsyncClient, db_session: AsyncSession):
     )
     response = await client.get(f"/api/v1/workspaces/{ws_id}/domains", headers=headers)
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["items"]
     assert len(data) == 2
 
 

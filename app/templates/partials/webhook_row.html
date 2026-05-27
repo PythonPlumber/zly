@@ -1,0 +1,17 @@
+<td style="font-weight: 500; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem;">{{ webhook.name }}</td>
+<td style="max-width: 16rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--zly-muted);">{{ webhook.url }}</td>
+<td style="font-family: 'Space Mono', monospace; font-size: 0.7rem;">{{ webhook.events or 'all' }}</td>
+<td>
+    {% if webhook.is_active %}
+    <span class="zly-badge zly-badge-active">Active</span>
+    {% else %}
+    <span class="zly-badge zly-badge-hidden">Inactive</span>
+    {% endif %}
+</td>
+<td style="text-align: right; white-space: nowrap;">
+    <button class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+            hx-get="/dashboard/webhooks/{{ webhook.id }}/edit-form" hx-target="#webhook-form-modal" hx-swap="innerHTML">Edit</button>
+    <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+            hx-delete="/api/v1/workspaces/{{ workspace_id }}/webhooks/{{ webhook.id }}" hx-target="closest tr" hx-swap="outerHTML"
+            hx-confirm="Delete this webhook?">Delete</button>
+</td>

@@ -4,55 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Zly{% endblock %}</title>
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Lora:ital,wght@0,300;0,400;1,300&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        logo: ['Cinzel', 'serif'],
+                        heading: ['Space Grotesk', 'sans-serif'],
+                        body: ['Lora', 'serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    },
+                    colors: {
+                        zlyDark: '#050a07',
+                        zlyCream: '#f4f0ea',
+                        zlyMuted: '#9a968f',
+                        zlyLine: 'rgba(244, 240, 234, 0.08)',
+                        zlyEmerald: '#22c55e',
+                        zlyEmeraldDark: '#16a34a',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         :root {
-            --zly-pink: #ff6b9d;
-            --zly-purple: #c44dff;
-            --zly-blue: #4d9fff;
-            --zly-green: #4dffb5;
-            --zly-yellow: #ffd64d;
-            --zly-orange: #ff8c4d;
-            --zly-bg: #0f0b1a;
-            --zly-card: #1a1530;
-            --zly-card-border: #2a1f4a;
-            --zly-text: #f0eaff;
-            --zly-muted: #9a8abf;
+            --zly-bg: #050a07;
+            --zly-cream: #f4f0ea;
+            --zly-muted: #9a968f;
+            --zly-line: rgba(244, 240, 234, 0.08);
+            --zly-emerald: #22c55e;
+            --zly-emerald-dark: #16a34a;
+            --zly-card-bg: rgba(10, 22, 16, 0.8);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Lora', serif;
             background: var(--zly-bg);
-            color: var(--zly-text);
+            color: var(--zly-cream);
             min-height: 100vh;
         }
+        .bg-vignette {
+            background: radial-gradient(circle at center, #0a1610 0%, #030604 100%);
+        }
+        .grid-border {
+            border-color: var(--zly-line);
+        }
         h1, h2, h3, h4, h5, h6 {
-            font-family: 'Fredoka', 'Inter', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         .zly-logo {
-            font-family: 'Fredoka', sans-serif;
+            font-family: 'Cinzel', serif;
             font-weight: 700;
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, var(--zly-pink), var(--zly-purple), var(--zly-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 1.25rem;
+            color: var(--zly-cream);
+            letter-spacing: 0.02em;
         }
-        .zly-logo-small {
-            font-family: 'Fredoka', sans-serif;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--zly-pink), var(--zly-purple), var(--zly-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .zly-logo em {
+            font-style: normal;
+            color: var(--zly-emerald);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            padding-left: 0.5rem;
         }
         .sidebar {
-            background: linear-gradient(180deg, #1a1530 0%, #0f0b1a 100%);
-            border-right: 2px solid var(--zly-card-border);
+            background: rgba(5, 10, 7, 0.95);
+            border-right: 1px solid var(--zly-line);
             width: 240px;
             display: flex;
             flex-direction: column;
@@ -67,28 +93,29 @@
             align-items: center;
             gap: 0.75rem;
             padding: 0.625rem 1rem;
-            border-radius: 12px;
-            font-family: 'Fredoka', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-weight: 500;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             color: var(--zly-muted);
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             text-decoration: none;
-            position: relative;
+            border-left: 2px solid transparent;
         }
         .sidebar-link:hover {
-            color: var(--zly-text);
-            background: rgba(255, 107, 157, 0.08);
-            transform: translateX(4px);
+            color: var(--zly-cream);
+            background: rgba(34, 197, 94, 0.06);
+            border-left-color: rgba(34, 197, 94, 0.3);
         }
         .sidebar-link.active {
-            color: white;
-            background: linear-gradient(135deg, rgba(255, 107, 157, 0.2), rgba(196, 77, 255, 0.2));
-            border: 1px solid rgba(255, 107, 157, 0.3);
+            color: var(--zly-cream);
+            background: rgba(34, 197, 94, 0.1);
+            border-left-color: var(--zly-emerald);
         }
         .sidebar-link svg {
-            width: 1.25rem;
-            height: 1.25rem;
+            width: 1rem;
+            height: 1rem;
             flex-shrink: 0;
         }
         .main-content {
@@ -97,105 +124,144 @@
             min-height: 100vh;
         }
         .zly-card {
-            background: var(--zly-card);
-            border: 1px solid var(--zly-card-border);
-            border-radius: 16px;
+            background: var(--zly-card-bg);
+            border: 1px solid var(--zly-line);
             padding: 1.5rem;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
         }
         .zly-card:hover {
-            border-color: rgba(255, 107, 157, 0.2);
-            box-shadow: 0 4px 20px rgba(255, 107, 157, 0.05);
+            border-color: rgba(34, 197, 94, 0.2);
         }
         .zly-btn {
-            font-family: 'Fredoka', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-weight: 600;
             padding: 0.5rem 1.25rem;
-            border-radius: 10px;
-            border: none;
+            border: 1px solid var(--zly-line);
             cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.875rem;
+            transition: all 0.15s ease;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
         }
         .zly-btn-primary {
-            background: linear-gradient(135deg, var(--zly-pink), var(--zly-purple));
-            color: white;
+            background: var(--zly-emerald);
+            color: #050a07;
+            border-color: var(--zly-emerald);
         }
         .zly-btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+            background: var(--zly-emerald-dark);
+            border-color: var(--zly-emerald-dark);
         }
         .zly-btn-secondary {
-            background: var(--zly-card);
-            border: 1px solid var(--zly-card-border);
-            color: var(--zly-text);
+            background: transparent;
+            border: 1px solid var(--zly-line);
+            color: var(--zly-cream);
         }
         .zly-btn-secondary:hover {
-            border-color: var(--zly-purple);
-            transform: translateY(-2px);
+            border-color: rgba(34, 197, 94, 0.4);
+            background: rgba(34, 197, 94, 0.06);
+        }
+        .zly-btn-danger {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        .zly-btn-danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
         }
         .zly-input {
-            background: var(--zly-bg);
-            border: 1px solid var(--zly-card-border);
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--zly-line);
             padding: 0.625rem 0.875rem;
-            color: var(--zly-text);
-            font-size: 0.875rem;
+            color: var(--zly-cream);
+            font-size: 0.85rem;
+            font-family: 'Lora', serif;
             width: 100%;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             outline: none;
         }
         .zly-input:focus {
-            border-color: var(--zly-purple);
-            box-shadow: 0 0 0 3px rgba(196, 77, 255, 0.15);
+            border-color: var(--zly-emerald);
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15);
         }
         .zly-input::placeholder { color: var(--zly-muted); }
-        label { font-family: 'Fredoka', sans-serif; font-size: 0.8rem; color: var(--zly-muted); display: block; margin-bottom: 0.375rem; }
+        label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--zly-muted);
+            display: block;
+            margin-bottom: 0.375rem;
+        }
+        select.zly-input {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
         .zly-badge {
             display: inline-flex;
             align-items: center;
-            padding: 0.25rem 0.625rem;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-family: 'Fredoka', sans-serif;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-        .zly-badge-active { background: rgba(77, 255, 181, 0.15); color: var(--zly-green); }
-        .zly-badge-hidden { background: rgba(154, 138, 191, 0.15); color: var(--zly-muted); }
-        .zly-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-        .zly-table th {
-            font-family: 'Fredoka', sans-serif;
-            font-weight: 600;
-            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.6rem;
+            font-family: 'Space Mono', monospace;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            border: 1px solid var(--zly-line);
+        }
+        .zly-badge-active {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--zly-emerald);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+        .zly-badge-hidden {
+            background: rgba(154, 150, 143, 0.1);
+            color: var(--zly-muted);
+            border-color: rgba(154, 150, 143, 0.2);
+        }
+        .zly-badge-warning {
+            background: rgba(234, 179, 8, 0.1);
+            color: #eab308;
+            border-color: rgba(234, 179, 8, 0.3);
+        }
+        .zly-badge-role {
+            background: rgba(96, 165, 250, 0.1);
+            color: #60a5fa;
+            border-color: rgba(96, 165, 250, 0.2);
+        }
+        .zly-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .zly-table th {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 0.6rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
             color: var(--zly-muted);
             padding: 0.75rem 1rem;
             text-align: left;
-            background: rgba(15, 11, 26, 0.5);
+            border-bottom: 1px solid var(--zly-line);
+            background: rgba(0, 0, 0, 0.3);
         }
         .zly-table td {
             padding: 0.75rem 1rem;
-            border-top: 1px solid var(--zly-card-border);
-            font-size: 0.875rem;
+            border-bottom: 1px solid var(--zly-line);
+            font-size: 0.8rem;
         }
-        .zly-table tr:hover td {
-            background: rgba(255, 107, 157, 0.03);
+        .zly-table tbody tr:hover td {
+            background: rgba(34, 197, 94, 0.03);
         }
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--zly-bg); }
-        ::-webkit-scrollbar-thumb { background: var(--zly-card-border); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3a2f5a; }
+        ::-webkit-scrollbar-thumb { background: rgba(244, 240, 234, 0.1); }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(244, 240, 234, 0.2); }
         @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-6px); }
@@ -204,29 +270,48 @@
             0%, 100% { opacity: 0.3; }
             50% { opacity: 0.6; }
         }
-        .zly-spinner {
-            width: 2rem;
-            height: 2rem;
-            border: 3px solid var(--zly-card-border);
-            border-top: 3px solid var(--zly-pink);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .zly-spinner {
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid rgba(244, 240, 234, 0.1);
+            border-top: 2px solid var(--zly-emerald);
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        .zly-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .zly-modal {
+            background: #0a1610;
+            border: 1px solid var(--zly-line);
+            padding: 2rem;
+            min-width: 24rem;
+            max-width: 32rem;
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
-<body>
+<body class="bg-vignette">
     <aside class="sidebar">
-        <div style="padding: 1.5rem 1rem; border-bottom: 1px solid var(--zly-card-border);">
-            <a href="/dashboard" class="zly-logo" style="text-decoration: none;">✦ Zly</a>
+        <div class="border-b grid-border" style="padding: 1.5rem 1rem;">
+            <a href="/dashboard" class="zly-logo" style="text-decoration: none;">
+                ZLY<em>DASHBOARD</em>
+            </a>
         </div>
-        <nav style="flex: 1; padding: 1rem 0.75rem; display: flex; flex-direction: column; gap: 0.25rem;">
+        <nav style="flex: 1; padding: 1rem 0.5rem; display: flex; flex-direction: column; gap: 0.125rem;">
             <a href="/dashboard" class="sidebar-link {% if request.url.path == '/dashboard' %}active{% endif %}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                 Dashboard
             </a>
-            <a href="/dashboard/links" class="sidebar-link {% if '/dashboard/links' in request.url.path %}active{% endif %}">
+            <a href="/dashboard/links" class="sidebar-link {% if '/dashboard/links' in request.url.path and '/dashboard/links/' not in request.url.path %}active{% endif %}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 Links
             </a>
@@ -234,14 +319,64 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 Bio Page
             </a>
+            <a href="/dashboard/domains" class="sidebar-link {% if '/dashboard/domains' in request.url.path %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                Domains
+            </a>
+            <a href="/dashboard/email" class="sidebar-link {% if '/dashboard/email' in request.url.path %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Email
+            </a>
+            <a href="/dashboard/api-keys" class="sidebar-link {% if '/dashboard/api-keys' in request.url.path %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                API Keys
+            </a>
+            <a href="/dashboard/webhooks" class="sidebar-link {% if '/dashboard/webhooks' in request.url.path %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Webhooks
+            </a>
+            <a href="/dashboard/tags" class="sidebar-link {% if '/dashboard/tags' in request.url.path %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                Tags
+            </a>
+            <hr class="grid-border" style="margin: 0.5rem 0;">
+            <a href="/dashboard/settings" class="sidebar-link {% if '/dashboard/settings' in request.url.path %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Settings
+            </a>
+            <a href="/dashboard/workspaces" class="sidebar-link {% if '/dashboard/workspaces' in request.url.path %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                Workspaces
+            </a>
+            <a href="/dashboard/invites" class="sidebar-link {% if '/dashboard/invites' in request.url.path %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                Team
+            </a>
+            {% if user.is_superuser %}
+            <hr class="grid-border" style="margin: 0.5rem 0;">
+            <a href="/dashboard/admin" class="sidebar-link {% if '/dashboard/admin' in request.url.path and '/audit' not in request.url.path %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Admin
+            </a>
+            <a href="/dashboard/admin/audit" class="sidebar-link {% if '/dashboard/admin/audit' in request.url.path %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Audit Logs
+            </a>
+            {% endif %}
         </nav>
-        <div style="border-top: 1px solid var(--zly-card-border); padding: 1rem 0.75rem;">
+        <div style="padding: 0.625rem 0.75rem; border-top: 1px solid rgba(244,240,234,0.08); display:flex; align-items:center; justify-content:center;">
+            <span style="display:inline-flex;align-items:center;gap:0.35rem;font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(34,197,94,0.8);letter-spacing:0.05em;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 4px rgba(34,197,94,0.4);"></span>
+                ALL SYSTEMS OPERATIONAL
+            </span>
+        </div>
+        <div class="border-t grid-border" style="padding: 1rem 0.75rem;">
             <div style="display: flex; align-items: center; gap: 0.625rem;">
-                <div style="width: 2rem; height: 2rem; border-radius: 8px; background: linear-gradient(135deg, var(--zly-pink), var(--zly-purple)); display: flex; align-items: center; justify-content: center; font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 0.75rem; color: white; flex-shrink: 0;">
+                <div style="width: 2rem; height: 2rem; background: var(--zly-emerald); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.1em; color: #050a07; flex-shrink: 0;">
                     {{ user.email[:2].upper() }}
                 </div>
                 <div style="overflow: hidden;">
-                    <p style="font-size: 0.8rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.email }}</p>
+                    <p style="font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.03em;">{{ user.email }}</p>
                 </div>
             </div>
         </div>
@@ -249,5 +384,48 @@
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
+    <div id="zly-toast" style="position: fixed; top: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem;"></div>
+<script>
+    document.body.addEventListener('htmx:configRequest', (e) => {
+        const match = document.cookie.match(/(?:^|;\s*)zly_csrf_token=([^;]*)/);
+        if (match) {
+            e.detail.headers['X-CSRF-Token'] = match[1];
+        }
+    });
+    document.body.addEventListener('htmx:responseError', (e) => {
+        const toast = document.getElementById('zly-toast');
+        const el = document.createElement('div');
+        el.style.cssText = 'background: rgba(239,68,68,0.9); color: #f4f0ea; padding: 0.75rem 1.25rem; font-family: Space Grotesk, sans-serif; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; border: 1px solid rgba(239,68,68,0.3); animation: slideIn 0.3s ease;';
+        let msg = 'Request failed';
+        try {
+            const detail = JSON.parse(e.detail?.xhr?.responseText).detail;
+            msg = typeof detail === 'string' ? detail : 'Request failed';
+        } catch(_) {}
+        el.textContent = 'ERROR: ' + msg;
+        toast.appendChild(el);
+        setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 4000);
+    });
+    document.body.addEventListener('htmx:afterSwap', (e) => {
+        if (e.detail?.target?.querySelector('[data-toast-success]')) {
+            const msg = e.detail.target.querySelector('[data-toast-success]').getAttribute('data-toast-success');
+            const toast = document.getElementById('zly-toast');
+            const el = document.createElement('div');
+            el.style.cssText = 'background: rgba(34,197,94,0.9); color: #050a07; padding: 0.75rem 1.25rem; font-family: Space Grotesk, sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; animation: slideIn 0.3s ease;';
+            el.textContent = msg;
+            toast.appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
+        }
+    });
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById('zly-toast');
+            const el = document.createElement('div');
+            el.style.cssText = 'background: rgba(34,197,94,0.9); color: #050a07; padding: 0.75rem 1.25rem; font-family: Space Grotesk, sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; animation: slideIn 0.3s ease;';
+            el.textContent = 'COPIED TO CLIPBOARD';
+            toast.appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 2000);
+        });
+    }
+</script>
 </body>
 </html>

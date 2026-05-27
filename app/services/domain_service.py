@@ -1,14 +1,15 @@
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models.domain import CustomDomain
 from app.schemas.domain import DomainCreate
 
 
 def generate_verification_code() -> str:
-    return f"zly-verify={uuid.uuid4().hex}"
+    return f"{settings.domain_verify_prefix}={uuid.uuid4().hex}"
 
 
 async def create_domain(db: AsyncSession, workspace_id: str, data: DomainCreate) -> CustomDomain:
@@ -40,11 +41,15 @@ async def get_domain(db: AsyncSession, domain_id: str) -> CustomDomain | None:
     return result.scalar_one_or_none()
 
 
-async def list_workspace_domains(db: AsyncSession, workspace_id: str) -> list[CustomDomain]:
-    result = await db.execute(
-        select(CustomDomain).where(CustomDomain.workspace_id == workspace_id).order_by(CustomDomain.created_at)
-    )
-    return list(result.scalars().all())
+async def list_workspace_domains(db: AsyncSession, workspace_id: str, page: int = 1, page_size: int = 50) -> tuple[list[CustomDomain], int, bool]:
+    base = select(CustomDomain).where(CustomDomain.workspace_id == workspace_id).order_by(CustomDomain.created_at)
+    count_result = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_result.scalar() or 0
+    offset = (page - 1) * page_size
+    result = await db.execute(base.offset(offset).limit(page_size))
+    domains = list(result.scalars().all())
+    has_next = (offset + page_size) < total
+    return domains, total, has_next
 
 
 async def verify_domain(db: AsyncSession, domain_id: str, verification_code: str) -> CustomDomain | None:

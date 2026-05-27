@@ -41,3 +41,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Utility
+check_db.py
+
+# Planning docs
+docs/superpowers/

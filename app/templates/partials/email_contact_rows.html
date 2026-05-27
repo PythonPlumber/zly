@@ -1,0 +1,14 @@
+{% for c in contacts %}
+<tr>
+    <td style="font-family: 'Space Mono', monospace; font-size: 0.7rem;">{{ c.email }}</td>
+    <td><span class="zly-badge zly-badge-{{ 'active' if c.status == 'active' else 'danger' }}" style="font-size: 0.55rem;">{{ c.status }}</span></td>
+    <td style="font-size: 0.65rem; color: var(--zly-muted);">{{ c.created_at.strftime('%Y-%m-%d') if c.created_at else '—' }}</td>
+    <td style="text-align: right; white-space: nowrap;">
+        <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+                hx-delete="/api/v1/workspaces/{{ workspace_id }}/email/contacts/{{ c.id }}"
+                hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Delete this contact?">Remove</button>
+    </td>
+</tr>
+{% else %}
+<tr><td colspan="4" style="text-align: center; padding: 2rem 1rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">No contacts yet.</td></tr>
+{% endfor %}
