@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Folders — Zly{% endblock %}
+{% block content %}
+<div style="max-width: 72rem; margin: 0 auto;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">Folders</h1>
+        <button class="zly-btn zly-btn-primary" hx-get="/dashboard/folders/new-form" hx-target="#folder-form-modal" hx-swap="innerHTML">+ New Folder</button>
+    </div>
+    <div id="folder-form-modal"></div>
+    <p style="font-size:0.7rem;color:var(--zly-muted);margin-bottom:1rem;">Organize your links into folders. Use folders to group campaigns, clients or categories.</p>
+    <div class="table-wrap">
+        <table class="zly-table">
+            <thead><tr><th>Name</th><th>Created</th><th style="text-align:right;">Actions</th></tr></thead>
+            <tbody id="folders-tbody" hx-get="/dashboard/folders/list" hx-trigger="load every 30s" hx-swap="innerHTML">
+                <tr><td colspan="3" style="text-align:center;padding:2rem;"><div class="zly-spinner" style="margin:0 auto;"></div><p style="color:var(--zly-muted);font-size:0.65rem;margin-top:0.5rem;">LOADING FOLDERS…</p></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -49,6 +49,7 @@ class LinkUpdate(BaseModel):
     is_archived: bool | None = None
     folder_id: str | None = None
     max_clicks: int | None = None
+    notes: str | None = None
     password: str | None = None
     expires_at: datetime | None = None
     activate_at: datetime | None = None
@@ -70,6 +71,7 @@ class LinkResponse(LinkBase):
     is_archived: bool = False
     folder_id: str | None = None
     max_clicks: int | None = None
+    notes: str | None = None
     expires_at: datetime | None = None
     activate_at: datetime | None = None
     workspace_id: str

@@ -606,6 +606,17 @@ async def tags_list(
     return HTMLResponse("".join(rows))
 
 
+@router.get("/dashboard/folders", response_class=HTMLResponse)
+async def folders_page(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    workspaces, _, _ = await get_workspaces_for_user(db, current_user.id)
+    default_ws = workspaces[0] if workspaces else None
+    return templates.TemplateResponse(request, "dashboard/folders.html", {"user": current_user, "workspace_id": default_ws.id if default_ws else ""})
+
+
 @router.get("/dashboard/tags/new-form", response_class=HTMLResponse)
 async def tag_new_form(
     request: Request,

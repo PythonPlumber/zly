@@ -52,6 +52,7 @@ async def lifespan(app: FastAPI):
                         "ALTER TABLE links ADD COLUMN folder_id VARCHAR(36)",
                         "ALTER TABLE links ADD COLUMN is_archived BOOLEAN DEFAULT 0",
                         "ALTER TABLE links ADD COLUMN max_clicks INTEGER",
+                        "ALTER TABLE links ADD COLUMN notes TEXT",
                     ]:
                         try:
                             await session.execute(text(ddl))

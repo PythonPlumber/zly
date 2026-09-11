@@ -61,16 +61,48 @@
                     </div>
                 </div>
                 <p style="font-size: 0.6rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.03em;">Archived links return 410. Max clicks auto-disables after limit.</p>
-                <details style="border:1px solid var(--zly-line);border-radius:0.25rem;">
-                    <summary style="padding:0.5rem;font-size:0.6rem;letter-spacing:0.1em;cursor:pointer;color:var(--zly-muted);">UTM Parameters</summary>
+                <div>
+                    <label>Notes (internal, optional)</label>
+                    <textarea name="notes" class="zly-input" rows="2" placeholder="Internal notes — not visible to visitors" style="resize:vertical; font-size:0.75rem;">{{ link.notes if link and link.notes else '' }}</textarea>
+                </div>
+                <details id="utm-details" style="border:1px solid var(--zly-line);border-radius:0.25rem;">
+                    <summary style="padding:0.5rem;font-size:0.6rem;letter-spacing:0.1em;cursor:pointer;color:var(--zly-muted);">UTM Parameters — Live Preview</summary>
                     <div style="padding:0.75rem;display:flex;flex-direction:column;gap:0.75rem;">
-                        <div><label class="zly-label" style="font-size:0.55rem;">Source (utm_source)</label><input type="text" name="utm_source" class="zly-input" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="newsletter"></div>
-                        <div><label class="zly-label" style="font-size:0.55rem;">Medium (utm_medium)</label><input type="text" name="utm_medium" class="zly-input" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="email"></div>
-                        <div><label class="zly-label" style="font-size:0.55rem;">Campaign (utm_campaign)</label><input type="text" name="utm_campaign" class="zly-input" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="spring_sale"></div>
-                        <div><label class="zly-label" style="font-size:0.55rem;">Term (utm_term)</label><input type="text" name="utm_term" class="zly-input" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="running+shoes"></div>
-                        <div><label class="zly-label" style="font-size:0.55rem;">Content (utm_content)</label><input type="text" name="utm_content" class="zly-input" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="hero_banner"></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                            <div><label class="zly-label" style="font-size:0.55rem;">Source</label><input type="text" name="utm_source" class="zly-input utm-field" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="newsletter"></div>
+                            <div><label class="zly-label" style="font-size:0.55rem;">Medium</label><input type="text" name="utm_medium" class="zly-input utm-field" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="email"></div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                            <div><label class="zly-label" style="font-size:0.55rem;">Campaign</label><input type="text" name="utm_campaign" class="zly-input utm-field" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="spring_sale"></div>
+                            <div><label class="zly-label" style="font-size:0.55rem;">Content</label><input type="text" name="utm_content" class="zly-input utm-field" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="hero_banner"></div>
+                        </div>
+                        <div><label class="zly-label" style="font-size:0.55rem;">Term</label><input type="text" name="utm_term" class="zly-input utm-field" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="running+shoes"></div>
+                        <div style="background:rgba(0,0,0,0.3);border:1px solid var(--zly-line);padding:0.5rem;word-break:break-all;">
+                            <p style="font-size:0.55rem;letter-spacing:0.08em;color:var(--zly-muted);margin-bottom:0.25rem;">PREVIEW URL</p>
+                            <code id="utm-preview" style="font-size:0.65rem;color:var(--zly-emerald);font-family:'Space Mono',monospace;">—</code>
+                        </div>
                     </div>
                 </details>
+                <script>
+                (function(){
+                    var dest = document.querySelector('input[name="destination_url"]');
+                    var preview = document.getElementById('utm-preview');
+                    function updateUTM(){
+                        if(!dest||!preview) return;
+                        try {
+                            var url = new URL(dest.value || 'https://example.com');
+                            document.querySelectorAll('.utm-field').forEach(function(el){
+                                if(el.value) url.searchParams.set(el.name, el.value);
+                                else url.searchParams.delete(el.name);
+                            });
+                            preview.textContent = url.toString();
+                        } catch(e){ preview.textContent = dest.value || 'Enter destination URL'; }
+                    }
+                    if(dest) dest.addEventListener('input', updateUTM);
+                    document.querySelectorAll('.utm-field').forEach(function(el){ el.addEventListener('input', updateUTM); });
+                    setTimeout(updateUTM, 100);
+                })();
+                </script>
                 <div style="display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px solid var(--zly-line);">
                     <button type="button" class="zly-btn zly-btn-secondary" onclick="this.closest('.zly-modal-overlay').remove()">Cancel</button>
                     <button type="submit" class="zly-btn zly-btn-primary">{% if link %}Save Changes{% else %}Create Link{% endif %}</button>

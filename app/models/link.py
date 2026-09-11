@@ -24,6 +24,7 @@ class Link(Base):
     folder_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("folders.id", ondelete="SET NULL"), nullable=True, index=True)
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     max_clicks: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

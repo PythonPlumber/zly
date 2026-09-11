@@ -93,7 +93,12 @@ async def get_links(
     filters = [Link.workspace_id == workspace_id]
     if search:
         like = f"%{search}%"
-        filters.append(or_(Link.short_code.ilike(like), Link.destination_url.ilike(like), Link.title.ilike(like)))
+        # include notes in search
+        has_notes = hasattr(Link, "notes")
+        if has_notes:
+            filters.append(or_(Link.short_code.ilike(like), Link.destination_url.ilike(like), Link.title.ilike(like), Link.notes.ilike(like)))
+        else:
+            filters.append(or_(Link.short_code.ilike(like), Link.destination_url.ilike(like), Link.title.ilike(like)))
     if folder_id is not None:
         filters.append(Link.folder_id == folder_id)
     if is_archived is not None:
