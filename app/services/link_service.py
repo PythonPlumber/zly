@@ -1,28 +1,75 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.logging import get_logger
 from app.core.security import hash_password
 from app.models.link import Link
 from app.schemas.link import LinkCreate, LinkUpdate
 from app.services.short_code import generate_short_code
+from app.services.webhook_service import trigger_webhooks
+
+logger = get_logger(__name__)
+
+
+def _append_utm(url: str, data) -> str:
+    utm_params = {}
+    for field in ("utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"):
+        val = getattr(data, field, None)
+        if val:
+            utm_params[field] = val
+    if not utm_params:
+        return url
+    from urllib.parse import urlencode, urlparse, urlunparse, parse_qs, ParseResult
+    parsed = urlparse(url)
+    existing = parse_qs(parsed.query, keep_blank_values=True)
+    existing.update(utm_params)
+    new_query = urlencode(existing, doseq=True)
+    return urlunparse(ParseResult(parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+
+
+async def _invalidate_link_cache(short_code: str, link_id: str, workspace_id: str) -> None:
+    try:
+        from app.core.redis import get_redis
+        r = await get_redis()
+        await r.delete(f"link:{short_code}")
+        from app.services.analytics_service import invalidate_analytics_cache
+        await invalidate_analytics_cache(link_id, workspace_id)
+    except Exception:
+        logger.debug("Cache invalidation skipped (Redis unavailable)")
 
 
 async def create_link(db: AsyncSession, data: LinkCreate, user_id: str | None = None) -> Link:
     short_code = data.short_code or generate_short_code()
+    destination_url = _append_utm(data.destination_url, data)
     link = Link(
         short_code=short_code,
-        destination_url=data.destination_url,
+        destination_url=destination_url,
         title=data.title,
         workspace_id=data.workspace_id,
         user_id=user_id,
+        folder_id=getattr(data, "folder_id", None),
+        max_clicks=getattr(data, "max_clicks", None),
         password_hash=hash_password(data.password) if data.password else None,
         expires_at=data.expires_at,
         activate_at=data.activate_at,
     )
     db.add(link)
     await db.flush()
+    payload = {
+        "event": "link.created",
+        "link_id": link.id,
+        "short_code": link.short_code,
+        "destination_url": link.destination_url,
+        "workspace_id": link.workspace_id,
+        "user_id": link.user_id,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        await trigger_webhooks(db, link.workspace_id, "link.created", payload)
+    except Exception:
+        pass
     await db.refresh(link)
     return link
 
@@ -38,11 +85,21 @@ async def get_link_by_id(db: AsyncSession, link_id: str) -> Link | None:
 
 
 async def get_links(
-    db: AsyncSession, workspace_id: str, page: int = 1, page_size: int = 20
+    db: AsyncSession, workspace_id: str, page: int = 1, page_size: int = 20,
+    search: str | None = None, folder_id: str | None = None, is_archived: bool | None = None,
 ) -> tuple[list[Link], int, bool]:
-    from sqlalchemy import func, select
+    from sqlalchemy import func, select, or_
 
-    base = select(Link).where(Link.workspace_id == workspace_id).order_by(Link.created_at.desc())
+    filters = [Link.workspace_id == workspace_id]
+    if search:
+        like = f"%{search}%"
+        filters.append(or_(Link.short_code.ilike(like), Link.destination_url.ilike(like), Link.title.ilike(like)))
+    if folder_id is not None:
+        filters.append(Link.folder_id == folder_id)
+    if is_archived is not None:
+        filters.append(Link.is_archived == is_archived)
+
+    base = select(Link).where(*filters).order_by(Link.created_at.desc())
 
     count_result = await db.execute(select(func.count()).select_from(base.subquery()))
     total = count_result.scalar() or 0
@@ -57,6 +114,12 @@ async def get_links(
 
 async def update_link(db: AsyncSession, link: Link, data: LinkUpdate) -> Link:
     update_data = data.model_dump(exclude_unset=True)
+    utm_fields = {"utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"}
+    has_new_utm = any(f in update_data for f in utm_fields)
+    if has_new_utm and "destination_url" not in update_data:
+        update_data["destination_url"] = link.destination_url
+    if "destination_url" in update_data:
+        update_data["destination_url"] = _append_utm(update_data["destination_url"], data)
     if "password" in update_data:
         pw = update_data.pop("password")
         if pw == "":
@@ -68,12 +131,28 @@ async def update_link(db: AsyncSession, link: Link, data: LinkUpdate) -> Link:
     link.updated_at = datetime.now()
     await db.flush()
     await db.refresh(link)
+    await _invalidate_link_cache(link.short_code, link.id, link.workspace_id)
     return link
 
 
 async def delete_link(db: AsyncSession, link: Link) -> None:
+    short_code = link.short_code
+    link_id = link.id
+    workspace_id = link.workspace_id
+    payload = {
+        "event": "link.deleted",
+        "link_id": link.id,
+        "short_code": link.short_code,
+        "workspace_id": link.workspace_id,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        await trigger_webhooks(db, link.workspace_id, "link.deleted", payload)
+    except Exception:
+        pass
     await db.delete(link)
     await db.flush()
+    await _invalidate_link_cache(short_code, link_id, workspace_id)
 
 
 async def get_links_all(db: AsyncSession, workspace_id: str) -> list[Link]:
@@ -91,7 +170,7 @@ async def bulk_create_links(
     workspace_id: str,
     user_id: str | None = None,
 ) -> dict:
-    created = 0
+    links = []
     errors = []
     for i, row in enumerate(rows):
         try:
@@ -110,24 +189,44 @@ async def bulk_create_links(
                 user_id=user_id,
                 password_hash=hash_password(data.password) if data.password else None,
             )
-            db.add(link)
-            await db.flush()
-            created += 1
+            links.append(link)
         except Exception as e:
             errors.append({"row": i, "error": str(e)})
-    return {"created": created, "errors": errors}
+
+    if errors:
+        return {"created": 0, "errors": errors}
+
+    for link in links:
+        db.add(link)
+    try:
+        await db.flush()
+    except Exception as exc:
+        await db.rollback()
+        return {"created": 0, "errors": [{"row": -1, "error": f"Bulk import failed: {exc}"}]}
+    return {"created": len(links), "errors": []}
 
 
 async def export_links_csv(db: AsyncSession, workspace_id: str) -> str:
     import csv
     from io import StringIO
+    from urllib.parse import parse_qs, urlparse
+
     links = await get_links_all(db, workspace_id)
     output = StringIO()
     writer = csv.writer(output)
-    writer.writerow(["short_code", "destination_url", "title", "is_active", "expires_at", "created_at"])
+    writer.writerow(["short_code", "destination_url", "title", "is_active", "activate_at", "expires_at", "created_at", "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"])
     for link in links:
+        # Extract UTM from destination_url if present
+        utm = {k: "" for k in ("utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content")}
+        try:
+            qs = parse_qs(urlparse(link.destination_url).query)
+            for k in utm:
+                utm[k] = qs.get(k, [""])[0]
+        except Exception:
+            pass
         writer.writerow([
             link.short_code, link.destination_url, link.title or "",
-            str(link.is_active), str(link.expires_at or ""), str(link.created_at),
+            str(link.is_active), str(link.activate_at or ""), str(link.expires_at or ""), str(link.created_at),
+            utm["utm_source"], utm["utm_medium"], utm["utm_campaign"], utm["utm_term"], utm["utm_content"],
         ])
     return output.getvalue()

@@ -49,16 +49,9 @@ class EmailCampaignCreate(BaseModel):
     name: str = Field(..., max_length=100)
     subject: str = Field(..., max_length=200)
     html_body: str
-    from_email: str | None = Field(None, max_length=255)
+    from_email: EmailStr | None = None
     from_name: str | None = Field(None, max_length=100)
     scheduled_at: datetime | None = None
-
-    @field_validator("from_email")
-    @classmethod
-    def validate_from_email(cls, v):
-        if v is not None:
-            EmailStr.validate(v)
-        return v
 
 
 class EmailCampaignUpdate(BaseModel):

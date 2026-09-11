@@ -1,0 +1,29 @@
+<div class="zly-modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="zly-modal" style="width: 28rem;">
+        <h3 style="font-size: 0.75rem; letter-spacing: 0.15em; margin-bottom: 1.25rem; color: var(--zly-muted);">
+            {% if tag %}{{ 'EDIT TAG' }}{% else %}{{ 'NEW TAG' }}{% endif %}
+        </h3>
+        <form hx-{% if tag %}patch="/api/v1/workspaces/{{ workspace_id }}/tags/{{ tag.id }}"{% else %}post="/api/v1/workspaces/{{ workspace_id }}/tags"{% endif %}
+              hx-target="body" hx-swap="outerHTML"
+              hx-on::after-request="if(event.detail.successful){document.querySelector('.zly-modal-overlay').remove()}">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label>Name</label>
+                    <input type="text" name="name" value="{{ tag.name if tag else '' }}" class="zly-input" placeholder="important" required>
+                </div>
+                <div>
+                    <label>Color</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="color" name="color" value="{{ tag.color or '#6366f1' }}" class="zly-input" style="width: 3rem; padding: 0.25rem; height: 2.5rem;">
+                        <input type="text" name="color_text" value="{{ tag.color or '#6366f1' }}" class="zly-input" style="flex: 1;" placeholder="#6366f1"
+                               oninput="this.previousElementSibling.value=this.value">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px solid var(--zly-line);">
+                    <button type="button" class="zly-btn zly-btn-secondary" onclick="this.closest('.zly-modal-overlay').remove()">Cancel</button>
+                    <button type="submit" class="zly-btn zly-btn-primary">{% if tag %}Save{% else %}Create{% endif %}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

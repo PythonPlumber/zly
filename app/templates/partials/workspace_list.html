@@ -1,0 +1,29 @@
+{% if workspaces %}
+<div style="display: flex; flex-direction: column; gap: 0.75rem;">
+    {% for ws in workspaces %}
+    <div class="zly-card" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem;">
+        <div>
+            <h3 style="font-size: 0.8rem; letter-spacing: 0.08em; margin-bottom: 0.25rem;">{{ ws.name }}</h3>
+            <code style="font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--zly-muted);">{{ ws.slug }}</code>
+            {% if ws.owner_id == user.id %}
+            <span class="zly-badge zly-badge-active" style="margin-left: 0.5rem; font-size: 0.5rem;">Owner</span>
+            {% endif %}
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="/dashboard?ws={{ ws.id }}" class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem;">Open</a>
+            {% if ws.owner_id == user.id %}
+            <button class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+                    hx-get="/dashboard/workspaces/{{ ws.id }}/edit-form" hx-target="#edit-workspace-modal" hx-swap="innerHTML">Edit</button>
+            <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+                    hx-delete="/api/v1/workspaces/{{ ws.id }}" hx-target="#workspaces-list" hx-swap="outerHTML"
+                    hx-confirm="Delete workspace '{{ ws.name }}' and all associated data?">Delete</button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="zly-card" style="text-align: center; padding: 3rem;">
+    <p style="color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">NO WORKSPACES YET. CREATE ONE TO GET STARTED.</p>
+</div>
+{% endif %}

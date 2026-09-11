@@ -1,0 +1,17 @@
+{% for t in templates %}
+<tr>
+    <td style="font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem;">{{ t.name }}</td>
+    <td style="font-family: 'Space Mono', monospace; font-size: 0.7rem; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.subject }}</td>
+    <td><span class="zly-badge zly-badge-{{ 'active' if t.is_default else 'hidden' }}" style="font-size: 0.55rem;">{{ 'Default' if t.is_default else '—' }}</span></td>
+    <td style="font-size: 0.65rem; color: var(--zly-muted);">{{ t.updated_at.strftime('%Y-%m-%d') if t.updated_at else '—' }}</td>
+    <td style="text-align: right; white-space: nowrap;">
+        <button class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+                hx-get="/dashboard/email/templates/{{ t.id }}/edit-form" hx-target="#email-form-modal" hx-swap="innerHTML">Edit</button>
+        <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+                hx-delete="/api/v1/workspaces/{{ workspace_id }}/email/templates/{{ t.id }}"
+                hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Delete this template?">Delete</button>
+    </td>
+</tr>
+{% else %}
+<tr><td colspan="5" style="text-align: center; padding: 2rem 1rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">No templates yet.</td></tr>
+{% endfor %}

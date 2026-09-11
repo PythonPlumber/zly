@@ -1,0 +1,13 @@
+<td style="font-family: 'Space Mono', monospace; font-size: 0.75rem;">{{ member.email or member.user_id }}</td>
+<td>
+    <span class="zly-badge zly-badge-role">{{ member.role }}</span>
+</td>
+<td style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--zly-muted);">{{ member.joined_at.strftime('%Y-%m-%d') if member.joined_at else '' }}</td>
+<td style="text-align: right; white-space: nowrap;">
+    {% if member.role != 'owner' %}
+    <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+            hx-delete="/api/v1/workspaces/{{ workspace_id }}/members/{{ member.user_id }}"
+            hx-target="closest tr" hx-swap="outerHTML"
+            hx-confirm="Remove this member?">Remove</button>
+    {% endif %}
+</td>

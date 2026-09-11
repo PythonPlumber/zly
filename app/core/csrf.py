@@ -18,11 +18,12 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if request.method in ("GET", "HEAD", "OPTIONS"):
             response: Response = await call_next(request)
             if not request.cookies.get(CSRF_COOKIE_NAME):
+                from app.config import settings
                 response.set_cookie(
                     key=CSRF_COOKIE_NAME,
                     value=secrets.token_hex(32),
                     httponly=False,
-                    secure=True,
+                    secure=settings.secure_cookies,
                     samesite="strict",
                     path="/",
                 )

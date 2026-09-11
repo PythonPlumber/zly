@@ -1,0 +1,64 @@
+<div class="zly-modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="zly-modal" style="width: 32rem;">
+        <h3 style="font-size: 0.75rem; letter-spacing: 0.15em; margin-bottom: 1.25rem; color: var(--zly-muted);">
+            {% if link %}{{ 'EDIT LINK' }}{% else %}{{ 'NEW LINK' }}{% endif %}
+        </h3>
+        <form hx-{% if link %}patch="/api/v1/workspaces/{{ workspace_id }}/links/{{ link.id }}"{% else %}post="/api/v1/workspaces/{{ workspace_id }}/links"{% endif %}
+              hx-target="body" hx-swap="outerHTML"
+              hx-on::after-request="if(event.detail.successful){document.querySelector('.zly-modal-overlay').remove()}">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label>Destination URL</label>
+                    <input type="url" name="destination_url" value="{{ link.destination_url if link else '' }}" class="zly-input" placeholder="https://example.com" required>
+                </div>
+                <div>
+                    <label>Title (optional)</label>
+                    <input type="text" name="title" value="{{ link.title if link else '' }}" class="zly-input" placeholder="Link title">
+                </div>
+                <div>
+                    <label>Custom Short Code (optional)</label>
+                    <input type="text" name="short_code" value="{{ link.short_code if link else '' }}" class="zly-input" placeholder="my-custom-slug" {% if link %}disabled{% endif %}>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label>Password (optional)</label>
+                        <input type="text" name="password" class="zly-input" placeholder="Leave blank for none">
+                    </div>
+                    <div>
+                        <label>Activate At (optional)</label>
+                        <input type="datetime-local" name="activate_at" value="{{ link.activate_at.strftime('%Y-%m-%dT%H:%M') if link and link.activate_at else '' }}" class="zly-input">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label>Expires At (optional)</label>
+                        <input type="datetime-local" name="expires_at" value="{{ link.expires_at.strftime('%Y-%m-%dT%H:%M') if link and link.expires_at else '' }}" class="zly-input">
+                    </div>
+                    <div>
+                        <label>&nbsp;</label>
+                        <p style="font-size: 0.6rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.03em; padding-top: 0.375rem;">Link becomes active at this time. Leave blank for immediate.</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <label style="margin: 0; cursor: pointer;">Active</label>
+                    <input type="checkbox" name="is_active" value="false" {% if not link or link.is_active %}checked{% endif %} style="accent-color: var(--zly-emerald); width: 1rem; height: 1rem;"
+                           onchange="this.value=this.checked ? 'true' : 'false'">
+                </div>
+                <details style="border:1px solid var(--zly-line);border-radius:0.25rem;">
+                    <summary style="padding:0.5rem;font-size:0.6rem;letter-spacing:0.1em;cursor:pointer;color:var(--zly-muted);">UTM Parameters</summary>
+                    <div style="padding:0.75rem;display:flex;flex-direction:column;gap:0.75rem;">
+                        <div><label class="zly-label" style="font-size:0.55rem;">Source (utm_source)</label><input type="text" name="utm_source" class="zly-input" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="newsletter"></div>
+                        <div><label class="zly-label" style="font-size:0.55rem;">Medium (utm_medium)</label><input type="text" name="utm_medium" class="zly-input" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="email"></div>
+                        <div><label class="zly-label" style="font-size:0.55rem;">Campaign (utm_campaign)</label><input type="text" name="utm_campaign" class="zly-input" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="spring_sale"></div>
+                        <div><label class="zly-label" style="font-size:0.55rem;">Term (utm_term)</label><input type="text" name="utm_term" class="zly-input" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="running+shoes"></div>
+                        <div><label class="zly-label" style="font-size:0.55rem;">Content (utm_content)</label><input type="text" name="utm_content" class="zly-input" style="width:100%;margin-top:0.2rem;font-size:0.65rem;" placeholder="hero_banner"></div>
+                    </div>
+                </details>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px solid var(--zly-line);">
+                    <button type="button" class="zly-btn zly-btn-secondary" onclick="this.closest('.zly-modal-overlay').remove()">Cancel</button>
+                    <button type="submit" class="zly-btn zly-btn-primary">{% if link %}Save Changes{% else %}Create Link{% endif %}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

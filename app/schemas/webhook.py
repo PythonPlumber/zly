@@ -3,8 +3,9 @@ from urllib.parse import urlparse
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.core.security import validate_private_url
 from app.schemas.link import _validate_url_scheme
 
 
@@ -21,8 +22,9 @@ PRIVATE_HOST_PATTERNS = [
 
 def _reject_private_url(v: str) -> str:
     _validate_url_scheme(v)
-    host = urlparse(v).hostname
-    if host and any(p.match(host) for p in PRIVATE_HOST_PATTERNS):
+    try:
+        validate_private_url(v)
+    except ValueError:
         raise ValueError("Webhook URL must not point to private or internal hosts")
     return v
 
@@ -52,10 +54,24 @@ class WebhookResponse(BaseModel):
     workspace_id: str
     name: str
     url: str
-    secret: str | None = None
     events: str
     is_active: bool
     max_retries: int
     created_at: datetime
+    has_secret: bool = False
+
+    @model_validator(mode="before")
+    @classmethod
+    def _mark_secret(cls, data):
+        if isinstance(data, dict):
+            has_secret = bool(data.get("secret"))
+            data = dict(data)
+            data.pop("secret", None)
+            data["has_secret"] = has_secret
+            return data
+        secret = getattr(data, "secret", None)
+        data.secret = None
+        data.has_secret = bool(secret)
+        return data
 
     model_config = {"from_attributes": True}

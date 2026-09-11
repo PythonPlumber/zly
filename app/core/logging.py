@@ -20,9 +20,11 @@ class JSONFormatter(logging.Formatter):
 
 
 def setup_logging() -> None:
+    root = logging.getLogger()
+    if root.handlers:
+        return
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JSONFormatter())
-    root = logging.getLogger()
     root.addHandler(handler)
     root.setLevel(logging.INFO)
 

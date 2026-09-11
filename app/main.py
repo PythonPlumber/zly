@@ -5,11 +5,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from app.api.router import api_router, redirect_router
 from app.api.email_tracking import router as email_tracking_router
-from app.api.email_campaigns import router as email_campaigns_router
 from app.routes.auth_routes import router as auth_router
 from app.config import settings
 from app.core.rate_limiter import setup_rate_limiter
@@ -39,6 +39,29 @@ async def lifespan(app: FastAPI):
         async with factory() as session:
             await session.execute(text("SELECT 1"))
         logger.info("Database connection verified")
+        # Ensure power-feature tables exist (for dev SQLite without alembic)
+        try:
+            from app.db import Base, get_engine
+            import app.models  # noqa: F401 ensure models registered
+            eng = get_engine()
+            async with eng.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all, checkfirst=True)
+            try:
+                async with factory() as session:
+                    for ddl in [
+                        "ALTER TABLE links ADD COLUMN folder_id VARCHAR(36)",
+                        "ALTER TABLE links ADD COLUMN is_archived BOOLEAN DEFAULT 0",
+                        "ALTER TABLE links ADD COLUMN max_clicks INTEGER",
+                    ]:
+                        try:
+                            await session.execute(text(ddl))
+                        except Exception:
+                            pass
+                    await session.commit()
+            except Exception:
+                pass
+        except Exception:
+            pass
     except Exception as e:
         logger.critical("Database unreachable on startup", extra={"error": str(e)})
         raise
@@ -50,14 +73,61 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.warning("Redis unreachable on startup — some features degraded")
 
+    is_prod = os.getenv("ENVIRONMENT", "").lower() in ("production", "prod")
+    default_warnings = []
+    if settings.secret_key == "change-me-in-production":
+        default_warnings.append("SECRET_KEY")
     if settings.jwt_secret == "change-me-in-production":
-        logger.warning("JWT secret is still the default — set a strong JWT_SECRET in production")
+        default_warnings.append("JWT_SECRET")
+    if default_warnings:
+        msg = f"Default secrets in use: {', '.join(default_warnings)}. Set strong values in production."
+        if is_prod:
+            logger.critical(msg)
+            raise RuntimeError(msg)
+        logger.warning(msg)
 
     yield
     await close_redis()
 
 
-app = FastAPI(title="Zly", version="0.1.0", lifespan=lifespan)
+app = FastAPI(
+    title="Zly API",
+    description="Open-source URL shortener and marketing platform. Shorten URLs, track clicks, manage campaigns, and more.",
+    version="0.1.0",
+    docs_url=None if os.getenv("ENVIRONMENT", "").lower() in ("production", "prod") else "/docs",
+    redoc_url=None if os.getenv("ENVIRONMENT", "").lower() in ("production", "prod") else "/redoc",
+    contact={
+        "name": "PythonPlumber",
+        "url": "https://senuka.me",
+        "email": "pythonplumber@senuka.me",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://github.com/pythonplumber/zly/blob/main/LICENSE",
+    },
+    lifespan=lifespan,
+    openapi_tags=[
+        {"name": "auth", "description": "Authentication and user registration"},
+        {"name": "links", "description": "Create, update, delete, and manage short links"},
+        {"name": "workspaces", "description": "Workspace management"},
+        {"name": "tags", "description": "Organize links with tags"},
+        {"name": "webhooks", "description": "Webhook integrations for events"},
+        {"name": "api-keys", "description": "API key management for programmatic access"},
+        {"name": "analytics", "description": "Click analytics and statistics"},
+        {"name": "domains", "description": "Custom domain management"},
+        {"name": "invites", "description": "Workspace member invites"},
+        {"name": "bio", "description": "Link-in-bio pages"},
+        {"name": "ab-testing", "description": "A/B testing variants for links"},
+        {"name": "bulk", "description": "Bulk import and export operations"},
+        {"name": "email-campaigns", "description": "Email campaign management"},
+        {"name": "email-tracking", "description": "Email open and click tracking"},
+        {"name": "audit", "description": "Audit log access"},
+        {"name": "admin", "description": "Superuser admin operations"},
+        {"name": "oauth", "description": "OAuth/SSO login with Google and GitHub"},
+        {"name": "users", "description": "User profile and settings"},
+        {"name": "sessions", "description": "Session management and revocation"},
+    ],
+)
 
 sentry_dsn = os.getenv("SENTRY_DSN", "")
 if sentry_dsn:
@@ -80,6 +150,12 @@ app.add_middleware(RequestIDMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CSRFMiddleware)
 
+# Static files — serves app/static/* at /static/*
+import os as _os
+_static_dir = _os.path.join(_os.path.dirname(__file__), "static")
+if _os.path.isdir(_static_dir):
+    app.mount("/static", StaticFiles(directory=_static_dir), name="static")
+
 if settings.rate_limit_enabled:
     setup_rate_limiter(
         app,
@@ -89,12 +165,13 @@ if settings.rate_limit_enabled:
         api_window=settings.rate_limit_window,
         auth_requests=settings.rate_limit_auth,
         auth_window=settings.rate_limit_window,
+        tracking_requests=settings.rate_limit_tracking,
+        tracking_window=settings.rate_limit_window,
     )
 
 app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(api_router, prefix="/api/v1")
-app.include_router(email_campaigns_router, prefix="/api/v1")
 app.include_router(email_tracking_router)
 
 

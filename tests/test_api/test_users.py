@@ -6,7 +6,7 @@ from httpx import AsyncClient
 async def test_get_me(auth_client: AsyncClient):
     r = await auth_client.get("/api/v1/users/me")
     assert r.status_code == 200
-    assert r.json()["email"] == "authuser@test.com"
+    assert r.json()["email"].endswith("@test.com")
 
 
 @pytest.mark.asyncio

@@ -1,0 +1,45 @@
+<div id="summary-cards" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
+    <div class="zly-card" style="text-align: center;">
+        <p style="color: var(--zly-muted); font-size: 0.6rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem;">Total Clicks</p>
+        <p style="font-size: 2rem; font-weight: 700; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.03em;">{{ total_clicks }}</p>
+    </div>
+    <div class="zly-card" style="text-align: center;">
+        <p style="color: var(--zly-muted); font-size: 0.6rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem;">Total Links</p>
+        <p style="font-size: 2rem; font-weight: 700; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.03em;">{{ total_links }}</p>
+    </div>
+    <div class="zly-card" style="text-align: center;">
+        <p style="color: var(--zly-muted); font-size: 0.6rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem;">Avg Clicks/Link</p>
+        <p style="font-size: 2rem; font-weight: 700; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.03em;">
+            {{ "%.1f"|format(total_clicks / total_links) if total_links > 0 else '0' }}
+        </p>
+    </div>
+    <div class="zly-card" style="text-align: center;">
+        <p style="color: var(--zly-muted); font-size: 0.6rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem;">Status</p>
+        <p style="font-size: 1rem; font-weight: 600; font-family: 'Space Grotesk', sans-serif; color: var(--zly-emerald);">● OPERATIONAL</p>
+    </div>
+</div>
+
+{% if links %}
+<div class="zly-card" style="padding: 0; overflow: hidden;">
+    <table class="zly-table">
+        <thead>
+            <tr>
+                <th>Short URL</th>
+                <th>Destination</th>
+                <th>Clicks</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for link in links %}
+            <tr>
+                <td><code style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--zly-emerald); cursor: pointer;" onclick="copyToClipboard('/{{ link.short_code }}')">/{{ link.short_code }}</code></td>
+                <td style="max-width: 16rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ link.destination_url }}</td>
+                <td style="font-family: 'Space Mono', monospace; font-size: 0.75rem;">{{ link.clicks or 0 }}</td>
+                <td style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--zly-muted);">{{ link.created_at.strftime('%Y-%m-%d') if link.created_at else '' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}

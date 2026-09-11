@@ -73,7 +73,7 @@ async def test_cancel_invite(db_session: AsyncSession, test_user_id: str):
 @pytest.mark.asyncio
 async def test_list_members(db_session: AsyncSession, test_user_id: str):
     ws = await create_workspace(db_session, WorkspaceCreate(name="Members WS", slug="members-ws"), test_user_id)
-    members = await list_members(db_session, ws.id)
+    members, _, _ = await list_members(db_session, ws.id)
     assert len(members) == 1
     assert members[0].user_id == test_user_id
     assert members[0].role == "owner"
@@ -95,5 +95,5 @@ async def test_remove_member(db_session: AsyncSession, test_user_id: str):
     ok = await remove_member(db_session, ws.id, user.id)
     assert ok is True
 
-    members = await list_members(db_session, ws.id)
+    members, _, _ = await list_members(db_session, ws.id)
     assert len(members) == 1

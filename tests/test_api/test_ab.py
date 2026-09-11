@@ -79,7 +79,7 @@ async def test_list_variants(client: AsyncClient, db_session: AsyncSession):
 
     response = await client.get(f"/api/v1/links/{link_id}/variants", headers=headers)
     assert response.status_code == 200
-    assert len(response.json()) == 2
+    assert len(response.json()["items"]) == 2
 
 
 @pytest.mark.asyncio

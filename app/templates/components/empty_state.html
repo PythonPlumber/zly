@@ -1,0 +1,14 @@
+{# Usage: {% include "components/empty_state.html" with title="No links yet" message="Create your first short link..." action_url="/dashboard/links" action_label="+ New Link" %} #}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+    </div>
+    <h3>{{ title or "Nothing here yet" }}</h3>
+    <p>{{ message or "Get started by creating your first item." }}</p>
+    {% if action_url and action_label %}
+    <a href="{{ action_url }}" class="zly-btn zly-btn-primary" style="margin-top: 0.5rem;">{{ action_label }}</a>
+    {% endif %}
+    {% if hx_action and hx_label %}
+    <button class="zly-btn zly-btn-primary" style="margin-top: 0.5rem;" hx-get="{{ hx_action }}" hx-target="{{ hx_target or '#link-form-modal' }}" hx-swap="innerHTML">{{ hx_label }}</button>
+    {% endif %}
+</div>

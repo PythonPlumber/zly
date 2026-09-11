@@ -1,0 +1,27 @@
+<div class="zly-modal-overlay" style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5,10,7,0.85); backdrop-filter: blur(2px);">
+    <div class="zly-card" style="max-width: 500px; width: 90%; padding: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 0.8rem; letter-spacing: 0.08em;">Import Links from CSV</h3>
+            <button onclick="this.closest('.zly-modal-overlay').remove()" style="background: none; border: none; color: var(--zly-muted); font-size: 1.1rem; cursor: pointer;">&times;</button>
+        </div>
+        <div style="font-size: 0.65rem; color: var(--zly-muted); margin-bottom: 1rem; font-family: 'Space Grotesk', sans-serif;">
+            CSV must have a <strong>destination_url</strong> column. Optional columns: <strong>short_code</strong>, <strong>title</strong>.
+        </div>
+        <form hx-encoding="multipart/form-data"
+              hx-post="/api/v1/workspaces/{{ workspace_id }}/links/bulk-import"
+              hx-target="#import-result"
+              hx-swap="innerHTML"
+              hx-on::after-request="if(event.detail.xhr.status === 200 || event.detail.xhr.status === 201){ setTimeout(function(){ document.getElementById('links-tbody').dispatchEvent(new CustomEvent('htmx:load', {})); htmx.trigger('#links-tbody', 'load'); }, 300); }">
+            <div>
+                <label class="zly-label">CSV File</label>
+                <input type="file" name="file" accept=".csv" class="zly-input" required
+                       style="width: 100%; margin-top: 0.3rem; font-family: 'Space Mono', monospace; font-size: 0.65rem;">
+            </div>
+            <div id="import-result" style="margin-top: 0.75rem; font-size: 0.65rem;"></div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+                <button type="button" class="zly-btn zly-btn-secondary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;" onclick="this.closest('.zly-modal-overlay').remove()">Cancel</button>
+                <button type="submit" class="zly-btn zly-btn-primary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;">Upload</button>
+            </div>
+        </form>
+    </div>
+</div>

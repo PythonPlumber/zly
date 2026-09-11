@@ -18,6 +18,9 @@ async def shutdown(ctx: dict) -> None:
 
 async def process_click(ctx: dict, link_id: str, ip: str, user_agent: str, referrer: str, variant_id: str | None = None) -> None:
     from app.services.click_service import record_click
+    from app.services.geoip_service import resolve_ip
+
+    geo = await resolve_ip(ip)
 
     async with ctx["session_factory"]() as db:
         try:
@@ -28,8 +31,19 @@ async def process_click(ctx: dict, link_id: str, ip: str, user_agent: str, refer
                 user_agent=user_agent,
                 referrer=referrer,
                 variant_id=variant_id,
+                country=geo["country"],
+                city=geo["city"],
+                latitude=geo["latitude"],
+                longitude=geo["longitude"],
             )
             await db.commit()
+            from app.services.analytics_service import invalidate_analytics_cache
+            from app.models.link import Link
+            from sqlalchemy import select
+            link_result = await db.execute(select(Link).where(Link.id == link_id))
+            link_row = link_result.scalar_one_or_none()
+            if link_row:
+                await invalidate_analytics_cache(link_id, link_row.workspace_id)
         except Exception:
             await db.rollback()
             raise
@@ -45,6 +59,17 @@ async def check_expiring_links_worker(ctx: dict, workspace_id: str) -> None:
         except Exception:
             await db.rollback()
             raise
+
+
+async def sweep_expiring_links(ctx: dict) -> None:
+    from app.models.workspace import Workspace
+    from sqlalchemy import select
+
+    async with ctx["session_factory"]() as db:
+        result = await db.execute(select(Workspace.id))
+        workspace_ids = [row[0] for row in result.all()]
+    for ws_id in workspace_ids:
+        await check_expiring_links_worker(ctx, ws_id)
 
 
 async def send_invite_email_job(ctx: dict, invite_id: str, to_email: str, workspace_name: str, invited_by_name: str, invite_url: str, expires_at: str) -> None:
@@ -99,6 +124,58 @@ async def deliver_webhook(ctx: dict, delivery_id: str) -> None:
             raise
 
 
+async def cleanup_old_data(ctx: dict) -> None:
+    from datetime import datetime, timedelta, timezone
+    from app.config import settings
+    from app.models.click import Click
+    from app.models.email_campaign import EmailCampaignOpen, EmailCampaignClick
+    from app.models.audit import AuditLog
+    from sqlalchemy import delete
+
+    if not settings.data_retention_enabled:
+        return
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=settings.click_retention_days)
+
+    async with ctx["session_factory"]() as db:
+        try:
+            result = await db.execute(delete(Click).where(Click.timestamp < cutoff))
+            deleted_clicks = result.rowcount
+
+            result = await db.execute(
+                delete(EmailCampaignOpen).where(EmailCampaignOpen.opened_at < cutoff)
+            )
+            deleted_opens = result.rowcount
+
+            result = await db.execute(
+                delete(EmailCampaignClick).where(EmailCampaignClick.clicked_at < cutoff)
+            )
+            deleted_click_events = result.rowcount
+
+            audit_cutoff = datetime.now(timezone.utc) - timedelta(days=365)
+            result = await db.execute(
+                delete(AuditLog).where(AuditLog.created_at < audit_cutoff)
+            )
+            deleted_audits = result.rowcount
+
+            await db.commit()
+            from app.core.logging import get_logger
+            logger = get_logger(__name__)
+            logger.info(
+                "Data retention cleanup complete",
+                extra={
+                    "clicks": deleted_clicks,
+                    "opens": deleted_opens,
+                    "click_events": deleted_click_events,
+                    "audit_logs": deleted_audits,
+                    "retention_days": settings.click_retention_days,
+                },
+            )
+        except Exception:
+            await db.rollback()
+            raise
+
+
 async def send_campaign_job(ctx: dict, campaign_id: str, contact_ids: list[str], base_url: str) -> None:
     from app.services.email_campaign_service import send_campaign_sync
 
@@ -115,11 +192,17 @@ class WorkerSettings:
     functions = [
         process_click,
         check_expiring_links_worker,
+        sweep_expiring_links,
         send_invite_email_job,
         send_password_reset_email_job,
         send_expiry_alert_email_job,
         deliver_webhook,
         send_campaign_job,
+        cleanup_old_data,
+    ]
+    cron_jobs = [
+        {"func": cleanup_old_data, "cron": "0 3 * * *"},
+        {"func": sweep_expiring_links, "cron": "0 * * * *"},
     ]
     on_startup = startup
     on_shutdown = shutdown

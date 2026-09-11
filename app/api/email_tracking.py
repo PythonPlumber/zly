@@ -24,8 +24,18 @@ router = APIRouter(tags=["email_tracking"])
 async def track_open(
     campaign_id: str,
     contact_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    from app.core.rate_limiter import _check_rate_limit, ZONES
+    zone = "_tracking"
+    if zone not in ZONES:
+        ZONES[zone] = {"max": settings.rate_limit_tracking, "window": settings.rate_limit_window}
+    client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+    allowed, _, _ = await _check_rate_limit(f"rl:open:{client_ip}", zone)
+    if not allowed:
+        return Response(content=b"", media_type="image/gif")
+
     campaign = await get_campaign(db, campaign_id)
     if not campaign:
         return Response(content=b"", media_type="image/gif")
@@ -52,11 +62,22 @@ async def track_open(
 async def unsubscribe(
     campaign_id: str,
     contact_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     campaign = await get_campaign(db, campaign_id)
     if not campaign:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+
+    contact_result = await db.execute(
+        select(EmailContact).where(
+            EmailContact.id == contact_id,
+            EmailContact.workspace_id == campaign.workspace_id,
+        )
+    )
+    contact = contact_result.scalar_one_or_none()
+    if not contact:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
 
     ok = await unsubscribe_contact(db, contact_id)
     await db.commit()
@@ -75,15 +96,38 @@ async def track_click(
     campaign_id: str,
     url: str = Query(...),
     contact_id: str | None = Query(None),
+    request: Request = None,
     db: AsyncSession = Depends(get_db),
 ):
+    from app.core.rate_limiter import _check_rate_limit, ZONES
+    zone = "_tracking"
+    if zone not in ZONES:
+        ZONES[zone] = {"max": settings.rate_limit_tracking, "window": settings.rate_limit_window}
+    client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+    allowed, _, _ = await _check_rate_limit(f"rl:click:{client_ip}", zone)
+    if not allowed:
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many requests")
+
     campaign = await get_campaign(db, campaign_id)
     if not campaign:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
 
+    from app.core.security import validate_private_url
+    try:
+        validate_private_url(url)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid destination URL")
+
     if contact_id:
-        await record_click(db, campaign_id, contact_id)
-        await db.commit()
+        contact_result = await db.execute(
+            select(EmailContact).where(
+                EmailContact.id == contact_id,
+                EmailContact.workspace_id == campaign.workspace_id,
+            )
+        )
+        if contact_result.scalar_one_or_none():
+            await record_click(db, campaign_id, contact_id)
+            await db.commit()
 
     return Response(
         status_code=302,

@@ -8,6 +8,10 @@ class ClickStats(BaseModel):
     browsers: list[dict]
     devices: list[dict]
     oss: list[dict]
+    unique_clicks: int = 0
+    top_countries: list[dict] = []
+    top_cities: list[dict] = []
+    hourly_stats: list[dict] = []
 
 
 class WorkspaceSummary(BaseModel):

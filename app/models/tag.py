@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, String, Table, Text, UniqueConstraint, func
+from sqlalchemy import Column, DateTime, ForeignKey, Index, String, Table, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -11,6 +11,7 @@ link_tags = Table(
     Base.metadata,
     Column("link_id", String(36), ForeignKey("links.id", ondelete="CASCADE"), primary_key=True),
     Column("tag_id", String(36), ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
+    Index("ix_link_tags_tag_id", "tag_id"),
 )
 
 

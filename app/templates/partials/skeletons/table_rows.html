@@ -1,0 +1,12 @@
+{# Skeleton rows for tables — use colspan param #}
+{% for i in range(4) %}
+<tr>
+    <td colspan="{{ colspan or 6 }}">
+        <div style="display:flex;gap:1rem;align-items:center;">
+            <div class="skeleton" style="height:0.85rem;flex:2;"></div>
+            <div class="skeleton" style="height:0.85rem;flex:3;"></div>
+            <div class="skeleton" style="height:0.65rem;flex:1;"></div>
+        </div>
+    </td>
+</tr>
+{% endfor %}

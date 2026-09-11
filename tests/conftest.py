@@ -117,12 +117,13 @@ async def test_workspace_id(db_session: AsyncSession, test_user_id: str) -> str:
 
 @pytest_asyncio.fixture
 async def auth_client(client: AsyncClient, db_session: AsyncSession) -> AsyncClient:
+    import uuid
     from app.schemas.auth import RegisterRequest
     from app.services.auth_service import register_user
 
     user = await register_user(
         db_session,
-        RegisterRequest(email="authuser@test.com", password="testpass123"),
+        RegisterRequest(email=f"authuser-{uuid.uuid4().hex[:8]}@test.com", password="testpass123"),
     )
     from app.core.security import create_access_token
 

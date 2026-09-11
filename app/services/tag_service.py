@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.tag import Tag, link_tags
@@ -15,11 +15,15 @@ async def create_tag(db: AsyncSession, workspace_id: str, data: TagCreate) -> Ta
     return tag
 
 
-async def get_tags(db: AsyncSession, workspace_id: str) -> Sequence[Tag]:
-    result = await db.execute(
-        select(Tag).where(Tag.workspace_id == workspace_id).order_by(Tag.name)
-    )
-    return result.scalars().all()
+async def get_tags(db: AsyncSession, workspace_id: str, page: int = 1, page_size: int = 50) -> tuple[Sequence[Tag], int, bool]:
+    base = select(Tag).where(Tag.workspace_id == workspace_id).order_by(Tag.name)
+    count_result = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_result.scalar() or 0
+    offset = (page - 1) * page_size
+    result = await db.execute(base.offset(offset).limit(page_size))
+    tags = result.scalars().all()
+    has_next = (offset + page_size) < total
+    return tags, total, has_next
 
 
 async def get_tag(db: AsyncSession, tag_id: str) -> Tag | None:

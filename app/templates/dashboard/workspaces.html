@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Workspaces — Zly{% endblock %}
+{% block content %}
+<div style="max-width: 72rem; margin: 0 auto;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">Workspaces</h1>
+        <button class="zly-btn zly-btn-primary" hx-get="/dashboard/workspaces/new-form" hx-target="#workspace-form-modal" hx-swap="innerHTML">+ New Workspace</button>
+    </div>
+    <div id="workspace-form-modal"></div>
+    <div id="edit-workspace-modal"></div>
+    <div id="workspaces-list" hx-get="/dashboard/workspaces/list" hx-trigger="load" hx-swap="innerHTML">
+        <div style="display: flex; justify-content: center; padding: 3rem;"><div class="zly-spinner"></div></div>
+    </div>
+</div>
+{% endblock %}

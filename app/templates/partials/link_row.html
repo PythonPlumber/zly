@@ -1,0 +1,29 @@
+<td style="max-width: 12rem;">
+    <code style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--zly-emerald); cursor: pointer;"
+          onclick="copyToClipboard('/{{ link.short_code }}')">/{{ link.short_code }}</code>
+</td>
+<td style="max-width: 16rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+    {{ link.destination_url }}
+</td>
+<td style="font-family: 'Space Mono', monospace; font-size: 0.75rem;">{{ link.clicks or 0 }}</td>
+<td>
+    {% if link.is_active %}
+    <span class="zly-badge zly-badge-active">Active</span>
+    {% else %}
+    <span class="zly-badge zly-badge-hidden">Inactive</span>
+    {% endif %}
+    {% if link.password %}
+    <span class="zly-badge zly-badge-warning" style="margin-left: 0.25rem;">Protected</span>
+    {% endif %}
+</td>
+<td style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--zly-muted);">
+    {{ link.created_at.strftime('%Y-%m-%d') if link.created_at else '' }}
+</td>
+<td style="text-align: right; white-space: nowrap;">
+    <a href="/dashboard/links/{{ link.id }}" class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;">Analytics</a>
+    <button class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+            hx-get="/dashboard/links/{{ link.id }}/edit-form" hx-target="#edit-link-modal" hx-swap="innerHTML">Edit</button>
+    <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.6rem; display: inline-flex;"
+            hx-delete="/api/v1/workspaces/{{ workspace_id }}/links/{{ link.id }}" hx-target="#links-tbody" hx-swap="outerHTML"
+            hx-confirm="Delete this link?">Delete</button>
+</td>

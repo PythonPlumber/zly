@@ -1,67 +1,43 @@
-import logging
 from fastapi import HTTPException, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
+from starlette.status import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
+from app.core.logging import get_logger
 
-from app.core.request_id import get_request_id
-
-logger = logging.getLogger(__name__)
-
-
-async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "detail": exc.detail,
-            "error": exc.detail,
-            "status_code": exc.status_code,
-            "request_id": get_request_id(),
-        },
-        headers={"X-Request-ID": get_request_id()} if get_request_id() else None,
-    )
+logger = get_logger(__name__)
+templates = Jinja2Templates(directory="app/templates")
 
 
-async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
-    def _simplify_error(err: dict) -> dict:
-        result = {}
-        for k, v in err.items():
-            if isinstance(v, dict):
-                result[k] = _simplify_error(v)
-            elif isinstance(v, list):
-                result[k] = [_simplify_error(i) if isinstance(i, dict) else str(i) for i in v]
-            elif hasattr(v, "__class__") and "ValidationError" in v.__class__.__name__:
-                result[k] = str(v)
-            else:
-                try:
-                    import json as _json
-                    _json.dumps(v)
-                    result[k] = v
-                except (TypeError, ValueError):
-                    result[k] = str(v)
-        return result
-
-    simplified = [_simplify_error(e) for e in exc.errors()]
-    return JSONResponse(
-        status_code=422,
-        content={
-            "detail": simplified,
-            "request_id": get_request_id(),
-        },
-        headers={"X-Request-ID": get_request_id()} if get_request_id() else None,
-    )
+async def http_exception_handler(request: Request, exc: HTTPException) -> HTMLResponse | JSONResponse:
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        template = "errors/404.html" if exc.status_code == HTTP_404_NOT_FOUND else "errors/500.html"
+        return templates.TemplateResponse(request, template, {"user": None}, status_code=exc.status_code)
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
-async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    logger.error("Unhandled exception", exc_info=exc, extra={
-        "path": str(request.url.path),
-        "method": request.method,
-    })
-    return JSONResponse(
-        status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "error": "Internal server error",
-            "request_id": get_request_id(),
-        },
-        headers={"X-Request-ID": get_request_id()} if get_request_id() else None,
-    )
+async def validation_exception_handler(request: Request, exc) -> JSONResponse:
+    from fastapi.exceptions import RequestValidationError
+    if isinstance(exc, RequestValidationError):
+        errors = exc.errors()
+        safe_errors = []
+        for err in errors:
+            ctx = err.get("ctx")
+            if ctx and isinstance(ctx, dict):
+                err["ctx"] = {k: str(v) for k, v in ctx.items()}
+            safe_errors.append(err)
+        return JSONResponse(status_code=422, content={"detail": safe_errors})
+    return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
+async def unhandled_exception_handler(request: Request, exc: Exception) -> HTMLResponse | JSONResponse:
+    logger.exception("Unhandled exception", extra={"path": str(request.url.path)})
+    try:
+        import sentry_sdk
+        sentry_sdk.capture_exception(exc)
+    except Exception:
+        pass
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return templates.TemplateResponse(request, "errors/500.html", {"user": None}, status_code=500)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})

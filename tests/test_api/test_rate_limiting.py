@@ -120,7 +120,7 @@ async def test_rate_limit_redis_fallback_allows(rate_limited_client: AsyncClient
     import app.core.rate_limiter as rl
 
     async def fake_check(k, z):
-        return (True, 0)
+        return (True, 0, 0)
 
     monkeypatch.setattr(rl, "_check_rate_limit", fake_check)
     r = await rate_limited_client.post(

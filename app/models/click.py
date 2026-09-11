@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -9,9 +9,13 @@ from app.db import Base
 class Click(Base):
     __tablename__ = "clicks"
 
+    __table_args__ = (
+        Index("ix_clicks_link_timestamp", "link_id", "timestamp"),
+    )
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     link_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("links.id"), nullable=False, index=True
+        String(36), ForeignKey("links.id", ondelete="CASCADE"), nullable=False, index=True
     )
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

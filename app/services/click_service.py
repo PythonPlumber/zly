@@ -13,6 +13,10 @@ async def record_click(
     user_agent: str | None,
     referrer: str | None,
     variant_id: str | None = None,
+    country: str | None = None,
+    city: str | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
 ) -> Click:
     parsed = parse_user_agent(user_agent)
     click = Click(
@@ -26,6 +30,10 @@ async def record_click(
         os=parsed["os"],
         device_type=parsed["device_type"],
         variant_id=variant_id,
+        country=country,
+        city=city,
+        latitude=latitude,
+        longitude=longitude,
     )
     db.add(click)
     await db.flush()

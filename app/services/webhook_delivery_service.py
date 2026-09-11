@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.webhook import Webhook
@@ -43,6 +43,11 @@ async def create_webhook_delivery(
     return delivery
 
 
+async def get_delivery(db: AsyncSession, delivery_id: str) -> WebhookDelivery | None:
+    result = await db.execute(select(WebhookDelivery).where(WebhookDelivery.id == delivery_id))
+    return result.scalar_one_or_none()
+
+
 async def get_deliveries(
     db: AsyncSession,
     webhook_id: str,
@@ -50,11 +55,11 @@ async def get_deliveries(
     page_size: int = 50,
 ) -> tuple[list[WebhookDelivery], int]:
     count_result = await db.execute(
-        select(WebhookDelivery)
+        select(func.count())
+        .select_from(WebhookDelivery)
         .where(WebhookDelivery.webhook_id == webhook_id)
-        .order_by(WebhookDelivery.created_at.desc())
     )
-    total = len(count_result.scalars().all())
+    total = count_result.scalar() or 0
 
     offset = (page - 1) * page_size
     result = await db.execute(

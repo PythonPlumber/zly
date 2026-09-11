@@ -1,0 +1,39 @@
+<div class="zly-modal-overlay" style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5,10,7,0.85); backdrop-filter: blur(2px);">
+    <div class="zly-card" style="max-width: 600px; width: 90%; padding: 2rem; max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 0.8rem; letter-spacing: 0.08em;">{% if template %}Edit: {{ template.name }}{% else %}New Template{% endif %}</h3>
+            <button onclick="this.closest('.zly-modal-overlay').remove()" style="background: none; border: none; color: var(--zly-muted); font-size: 1.1rem; cursor: pointer;">&times;</button>
+        </div>
+        <form hx-target="#templates-tbody" hx-swap="innerHTML" hx-on::after-request="if(event.detail.successful){document.getElementById('email-form-modal').innerHTML='';}"
+              {% if template %}
+              hx-put="/api/v1/workspaces/{{ workspace_id }}/email/templates/{{ template.id }}"
+              {% else %}
+              hx-post="/api/v1/workspaces/{{ workspace_id }}/email/templates"
+              {% endif %}>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label class="zly-label">Name</label>
+                    <input type="text" name="name" class="zly-input" required style="width: 100%; margin-top: 0.3rem;" value="{{ template.name if template else '' }}" placeholder="My Template">
+                </div>
+                <div>
+                    <label class="zly-label">Subject</label>
+                    <input type="text" name="subject" class="zly-input" required style="width: 100%; margin-top: 0.3rem;" value="{{ template.subject if template else '' }}" placeholder="Your weekly newsletter">
+                </div>
+                <div>
+                    <label class="zly-label">HTML Body</label>
+                    <textarea name="html_body" class="zly-input" required style="width: 100%; margin-top: 0.3rem; min-height: 200px; font-family: 'Space Mono', monospace; font-size: 0.7rem; resize: vertical;">{{ template.html_body if template else '' }}</textarea>
+                </div>
+                <div>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.65rem; color: var(--zly-muted);">
+                        <input type="checkbox" name="is_default" value="true" {% if template and template.is_default %}checked{% endif %} style="accent-color: var(--zly-emerald);">
+                        Set as default template
+                    </label>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+                <button type="button" class="zly-btn zly-btn-secondary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;" onclick="this.closest('.zly-modal-overlay').remove()">Cancel</button>
+                <button type="submit" class="zly-btn zly-btn-primary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;">Save</button>
+            </div>
+        </form>
+    </div>
+</div>

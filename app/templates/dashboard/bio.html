@@ -1,21 +1,19 @@
 {% extends "base.html" %}
-
 {% block title %}Bio Page — Zly{% endblock %}
-
 {% block content %}
 <div style="max-width: 56rem; margin: 0 auto;">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.75rem;">Bio Page</h1>
+        <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">Bio Page</h1>
         <div style="display: flex; gap: 0.5rem;">
             {% if bio %}
-            <a href="/bio/{{ bio.slug }}" target="_blank" class="zly-btn zly-btn-secondary" style="font-size: 0.8rem;">View Public</a>
+            <a href="/bio/{{ bio.slug }}" target="_blank" class="zly-btn zly-btn-secondary" style="font-size: 0.65rem;">View Public</a>
             {% endif %}
         </div>
     </div>
 
     {% if bio %}
     <div class="zly-card" style="margin-bottom: 1.5rem;">
-        <form hx-put="/api/v1{{ request.url.path }}" hx-target="body" style="display: flex; flex-direction: column; gap: 1rem;">
+        <form hx-put="/api/v1/workspaces/{{ workspace_id }}/bio" hx-target="body" style="display: flex; flex-direction: column; gap: 1rem;">
             <div>
                 <label>Slug</label>
                 <input type="text" name="slug" value="{{ bio.slug }}" class="zly-input">
@@ -43,23 +41,25 @@
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <label style="margin: 0;">Published</label>
-                <input type="checkbox" name="is_published" value="true" {% if bio.is_published %}checked{% endif %} style="accent-color: var(--zly-pink);">
+                <label style="margin: 0; cursor: pointer;">Published</label>
+                <input type="checkbox" name="is_published" value="true" {% if bio.is_published %}checked{% endif %} style="accent-color: var(--zly-emerald); width: 1rem; height: 1rem;">
             </div>
             <button type="submit" class="zly-btn zly-btn-primary" style="align-self: flex-start;">Save</button>
         </form>
     </div>
 
     <div class="zly-card" style="padding: 0; overflow: hidden;">
-        <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--zly-card-border); display: flex; align-items: center; justify-content: space-between;">
-            <h3 style="font-family: 'Fredoka', sans-serif; font-weight: 600;">Links</h3>
+        <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--zly-line); display: flex; align-items: center; justify-content: space-between;">
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.65rem; letter-spacing: 0.15em; color: var(--zly-muted);">Links</h3>
+            <button class="zly-btn zly-btn-secondary" style="font-size: 0.6rem; padding: 0.3rem 0.65rem;" hx-get="/dashboard/bio/links/new-form" hx-target="#bio-link-form" hx-swap="innerHTML">+ Add Link</button>
         </div>
-        <div id="bio-links" style="border-bottom: 1px solid var(--zly-card-border);">
+        <div id="bio-link-form"></div>
+        <div id="bio-links" style="border-bottom: 1px solid var(--zly-line);">
             {% for link in bio.links %}
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--zly-card-border);">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--zly-line);">
                 <div style="flex: 1; min-width: 0;">
-                    <p style="font-weight: 500;">{{ link.title }}</p>
-                    <p style="font-size: 0.8rem; color: var(--zly-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ link.url }}</p>
+                    <p style="font-weight: 500; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; letter-spacing: 0.03em;">{{ link.title }}</p>
+                    <p style="font-size: 0.7rem; color: var(--zly-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Space Mono', monospace;">{{ link.url }}</p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
                     {% if link.is_active %}
@@ -67,6 +67,12 @@
                     {% else %}
                     <span class="zly-badge zly-badge-hidden">Hidden</span>
                     {% endif %}
+                    <button class="zly-btn zly-btn-danger" style="font-size: 0.55rem; padding: 0.25rem 0.5rem;"
+                            hx-delete="/api/v1/workspaces/{{ workspace_id }}/bio/links/{{ link.id }}"
+                            hx-target="#bio-links" hx-swap="outerHTML"
+                            hx-confirm="Remove this bio link?">Remove</button>
+                    <button class="zly-btn zly-btn-secondary" style="font-size: 0.55rem; padding: 0.25rem 0.5rem;"
+                            hx-get="/dashboard/bio/links/{{ link.id }}/edit-form" hx-target="#bio-link-form" hx-swap="innerHTML">Edit</button>
                 </div>
             </div>
             {% endfor %}
@@ -74,8 +80,8 @@
     </div>
     {% else %}
     <div class="zly-card" style="text-align: center; padding: 3rem;">
-        <p style="color: var(--zly-muted); margin-bottom: 1.5rem;">No bio page yet. Create one to get started.</p>
-        <form hx-post="/api/v1{{ request.url.path }}" hx-target="body" style="display: flex; flex-direction: column; gap: 1rem; max-width: 24rem; margin: 0 auto; text-align: left;">
+        <p style="color: var(--zly-muted); margin-bottom: 1.5rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.05em;">NO BIO PAGE YET. CREATE ONE TO GET STARTED.</p>
+        <form hx-post="/api/v1/workspaces/{{ workspace_id }}/bio" hx-target="body" style="display: flex; flex-direction: column; gap: 1rem; max-width: 24rem; margin: 0 auto; text-align: left;">
             <div>
                 <label>Slug</label>
                 <input type="text" name="slug" placeholder="my-links" required class="zly-input">

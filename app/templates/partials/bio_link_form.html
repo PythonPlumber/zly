@@ -1,0 +1,30 @@
+<div class="zly-modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="zly-modal" style="width: 28rem;">
+        <h3 style="font-size: 0.75rem; letter-spacing: 0.15em; margin-bottom: 1.25rem; color: var(--zly-muted);">
+            {% if bio_link %}{{ 'EDIT BIO LINK' }}{% else %}{{ 'ADD BIO LINK' }}{% endif %}
+        </h3>
+        <form hx-{% if bio_link %}put="/api/v1/workspaces/{{ workspace_id }}/bio/links/{{ bio_link.id }}"{% else %}post="/api/v1/workspaces/{{ workspace_id }}/bio/links"{% endif %}
+              hx-target="body" hx-swap="outerHTML"
+              hx-on::after-request="if(event.detail.successful){document.querySelector('.zly-modal-overlay').remove()}">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label>Title</label>
+                    <input type="text" name="title" value="{{ bio_link.title if bio_link else '' }}" class="zly-input" placeholder="My Link" required>
+                </div>
+                <div>
+                    <label>URL</label>
+                    <input type="url" name="url" value="{{ bio_link.url if bio_link else '' }}" class="zly-input" placeholder="https://example.com" required>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <label style="margin: 0; cursor: pointer;">Active</label>
+                    <input type="checkbox" name="is_active" value="true" {% if not bio_link or bio_link.is_active %}checked{% endif %} style="accent-color: var(--zly-emerald); width: 1rem; height: 1rem;"
+                           onchange="this.value=this.checked ? 'true' : 'false'">
+                </div>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px solid var(--zly-line);">
+                    <button type="button" class="zly-btn zly-btn-secondary" onclick="this.closest('.zly-modal-overlay').remove()">Cancel</button>
+                    <button type="submit" class="zly-btn zly-btn-primary">{% if bio_link %}Save{% else %}Add Link{% endif %}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

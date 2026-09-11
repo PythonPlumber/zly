@@ -1,0 +1,26 @@
+<div class="zly-modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="zly-modal" style="width: 28rem;">
+        <h3 style="font-size: 0.75rem; letter-spacing: 0.15em; margin-bottom: 1.25rem; color: var(--zly-muted);">INVITE MEMBER</h3>
+        <form hx-post="/api/v1/workspaces/{{ workspace_id }}/invites" hx-target="body" hx-swap="outerHTML"
+              hx-on::after-request="if(event.detail.successful){document.querySelector('.zly-modal-overlay').remove()}">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label>Email</label>
+                    <input type="email" name="email" class="zly-input" placeholder="colleague@company.com" required>
+                </div>
+                <div>
+                    <label>Role</label>
+                    <select name="role" class="zly-input">
+                        <option value="member">Member</option>
+                        <option value="editor">Editor</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px solid var(--zly-line);">
+                    <button type="button" class="zly-btn zly-btn-secondary" onclick="this.closest('.zly-modal-overlay').remove()">Cancel</button>
+                    <button type="submit" class="zly-btn zly-btn-primary">Send Invite</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

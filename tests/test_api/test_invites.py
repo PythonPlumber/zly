@@ -29,7 +29,7 @@ async def test_list_invites(auth_client: AsyncClient):
     await auth_client.post(f"/api/v1/workspaces/{ws_id}/invites", json={"email": "b@test.com"})
     response = await auth_client.get(f"/api/v1/workspaces/{ws_id}/invites")
     assert response.status_code == 200
-    assert len(response.json()) == 2
+    assert len(response.json()["items"]) == 2
 
 
 @pytest.mark.asyncio
@@ -48,7 +48,7 @@ async def test_list_members(auth_client: AsyncClient, db_session, test_user_id: 
     ws_id = ws_resp.json()["id"]
     response = await auth_client.get(f"/api/v1/workspaces/{ws_id}/members")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["items"]
     assert len(data) == 1
     assert data[0]["role"] == "owner"
 

@@ -69,5 +69,6 @@ async def test_list_api_keys(db_session: AsyncSession, test_user_id: str):
     )
     await create_api_key(db_session, ApiKeyCreate(name="Key 1"), test_user_id, ws.id)
     await create_api_key(db_session, ApiKeyCreate(name="Key 2"), test_user_id, ws.id)
-    keys = await list_api_keys(db_session, ws.id)
+    keys, total, _ = await list_api_keys(db_session, ws.id)
     assert len(keys) == 2
+    assert total == 2

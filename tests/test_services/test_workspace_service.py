@@ -30,7 +30,7 @@ async def test_get_workspaces_for_user(db_session: AsyncSession):
 
     await create_workspace(db_session, WorkspaceCreate(name="WS 1"), user.id)
     await create_workspace(db_session, WorkspaceCreate(name="WS 2"), user.id)
-    workspaces = await get_workspaces_for_user(db_session, user.id)
+    workspaces, _, _ = await get_workspaces_for_user(db_session, user.id)
     assert len(workspaces) == 2
 
 

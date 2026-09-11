@@ -30,7 +30,7 @@ async def test_list_webhooks(auth_client: AsyncClient):
     )
     r = await auth_client.get(f"/api/v1/workspaces/{ws_id}/webhooks")
     assert r.status_code == 200
-    assert len(r.json()) >= 1
+    assert len(r.json()["items"]) >= 1
 
 
 @pytest.mark.asyncio

@@ -74,6 +74,11 @@ async def add_bio_link(db: AsyncSession, bio_page_id: str, data: BioLinkCreate) 
     return link
 
 
+async def get_bio_link(db: AsyncSession, link_id: str) -> BioLink | None:
+    result = await db.execute(select(BioLink).where(BioLink.id == link_id))
+    return result.scalar_one_or_none()
+
+
 async def update_bio_link(db: AsyncSession, link_id: str, data: BioLinkUpdate) -> BioLink | None:
     result = await db.execute(select(BioLink).where(BioLink.id == link_id))
     bio_link = result.scalar_one_or_none()

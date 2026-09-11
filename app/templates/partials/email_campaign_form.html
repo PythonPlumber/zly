@@ -1,0 +1,48 @@
+<div class="zly-modal-overlay" style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5,10,7,0.85); backdrop-filter: blur(2px);">
+    <div class="zly-card" style="max-width: 600px; width: 90%; padding: 2rem; max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 0.8rem; letter-spacing: 0.08em;">{% if campaign %}Edit: {{ campaign.name }}{% else %}New Campaign{% endif %}</h3>
+            <button onclick="this.closest('.zly-modal-overlay').remove()" style="background: none; border: none; color: var(--zly-muted); font-size: 1.1rem; cursor: pointer;">&times;</button>
+        </div>
+        <form hx-target="#campaigns-tbody" hx-swap="innerHTML" hx-on::after-request="if(event.detail.successful){document.getElementById('email-form-modal').innerHTML='';}"
+              {% if campaign %}
+              hx-put="/api/v1/workspaces/{{ workspace_id }}/email/campaigns/{{ campaign.id }}"
+              {% else %}
+              hx-post="/api/v1/workspaces/{{ workspace_id }}/email/campaigns"
+              {% endif %}>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label class="zly-label">Campaign Name</label>
+                    <input type="text" name="name" class="zly-input" required style="width: 100%; margin-top: 0.3rem;" value="{{ campaign.name if campaign else '' }}" placeholder="March Newsletter">
+                </div>
+                <div>
+                    <label class="zly-label">Subject</label>
+                    <input type="text" name="subject" class="zly-input" required style="width: 100%; margin-top: 0.3rem;" value="{{ campaign.subject if campaign else '' }}" placeholder="What's new this month">
+                </div>
+                <div>
+                    <label class="zly-label">HTML Body</label>
+                    <textarea name="html_body" class="zly-input" required style="width: 100%; margin-top: 0.3rem; min-height: 200px; font-family: 'Space Mono', monospace; font-size: 0.7rem; resize: vertical;">{{ campaign.html_body if campaign else '' }}</textarea>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label class="zly-label">From Email (optional)</label>
+                        <input type="email" name="from_email" class="zly-input" style="width: 100%; margin-top: 0.3rem;" value="{{ campaign.from_email if campaign else '' }}" placeholder="newsletter@example.com">
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="zly-label">From Name (optional)</label>
+                        <input type="text" name="from_name" class="zly-input" style="width: 100%; margin-top: 0.3rem;" value="{{ campaign.from_name if campaign else '' }}" placeholder="Zly Team">
+                    </div>
+                </div>
+                <div>
+                    <label class="zly-label">Schedule (optional)</label>
+                    <input type="datetime-local" name="scheduled_at" class="zly-input" style="width: 100%; margin-top: 0.3rem;"
+                           value="{{ campaign.scheduled_at.strftime('%Y-%m-%dT%H:%M') if campaign and campaign.scheduled_at else '' }}">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+                <button type="button" class="zly-btn zly-btn-secondary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;" onclick="this.closest('.zly-modal-overlay').remove()">Cancel</button>
+                <button type="submit" class="zly-btn zly-btn-primary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;">Save</button>
+            </div>
+        </form>
+    </div>
+</div>

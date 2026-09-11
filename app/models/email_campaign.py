@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, JSON, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, JSON, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -18,6 +18,8 @@ class EmailContact(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
+        UniqueConstraint('workspace_id', 'email', name='uq_workspace_email'),
+        Index('ix_email_contacts_status', 'status'),
         {"sqlite_autoincrement": True},
     )
 
@@ -52,6 +54,8 @@ class EmailCampaign(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
+    __table_args__ = (Index('ix_email_campaigns_created_at', 'workspace_id', 'created_at'),)
+
 
 class EmailCampaignContact(Base):
     __tablename__ = "email_campaign_contacts"
@@ -59,6 +63,8 @@ class EmailCampaignContact(Base):
     campaign_id: Mapped[str] = mapped_column(String(36), ForeignKey("email_campaigns.id", ondelete="CASCADE"), primary_key=True)
     contact_id: Mapped[str] = mapped_column(String(36), ForeignKey("email_contacts.id", ondelete="CASCADE"), primary_key=True)
     added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (Index("ix_email_campaign_contacts_contact_id", "contact_id"),)
 
 
 class EmailCampaignOpen(Base):
@@ -78,7 +84,7 @@ class EmailCampaignClick(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     campaign_id: Mapped[str] = mapped_column(String(36), ForeignKey("email_campaigns.id", ondelete="CASCADE"), nullable=False, index=True)
     contact_id: Mapped[str] = mapped_column(String(36), ForeignKey("email_contacts.id", ondelete="CASCADE"), nullable=False, index=True)
-    link_id: Mapped[str] = mapped_column(String(36), ForeignKey("links.id", ondelete="SET NULL"), nullable=True)
+    link_id: Mapped[str] = mapped_column(String(36), ForeignKey("links.id", ondelete="SET NULL"), nullable=True, index=True)
     clicked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)

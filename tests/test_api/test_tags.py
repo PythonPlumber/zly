@@ -25,7 +25,7 @@ async def test_list_tags(auth_client: AsyncClient):
     await auth_client.post(f"/api/v1/workspaces/{ws_id}/tags", json={"name": "tag1"})
     r = await auth_client.get(f"/api/v1/workspaces/{ws_id}/tags")
     assert r.status_code == 200
-    assert len(r.json()) >= 1
+    assert len(r.json()["items"]) >= 1
 
 
 @pytest.mark.asyncio

@@ -1,15 +1,15 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TagCreate(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1, max_length=50, pattern=r"^[a-zA-Z0-9 _-]+$")
     color: str | None = "#6366f1"
 
 
 class TagUpdate(BaseModel):
-    name: str | None = None
+    name: str | None = Field(None, min_length=1, max_length=50, pattern=r"^[a-zA-Z0-9 _-]+$")
     color: str | None = None
 
 

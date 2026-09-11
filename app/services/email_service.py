@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from html import escape
 
 from app.config import settings
 from app.core.email import get_email_backend
@@ -67,10 +68,10 @@ async def send_invite_email(
 ) -> dict:
     backend = get_email_backend()
     html = _INVITE_EMAIL_HTML.format(
-        workspace_name=workspace_name,
-        invited_by_name=invited_by_name,
-        invite_url=invite_url,
-        expires_at=expires_at,
+        workspace_name=escape(workspace_name),
+        invited_by_name=escape(invited_by_name),
+        invite_url=escape(invite_url, quote=True),
+        expires_at=escape(expires_at),
     )
     logger.info("Sending invite email", extra={"invite_id": invite_id, "to": to_email})
     return await backend.send_email(
@@ -88,8 +89,8 @@ async def send_password_reset_email(
 ) -> dict:
     backend = get_email_backend()
     html = _PASSWORD_RESET_EMAIL_HTML.format(
-        reset_url=reset_url,
-        expires_at=expires_at,
+        reset_url=escape(reset_url, quote=True),
+        expires_at=escape(expires_at),
     )
     logger.info("Sending password reset email", extra={"user_id": user_id, "to": to_email})
     return await backend.send_email(
@@ -112,11 +113,11 @@ async def send_expiry_alert_email(
 ) -> dict:
     backend = get_email_backend()
     html = _EXPIRY_ALERT_EMAIL_HTML.format(
-        link_title=link_title,
-        short_code=short_code,
-        short_url=short_url,
-        destination_url=destination_url,
-        expires_at=expires_at,
+        link_title=escape(link_title),
+        short_code=escape(short_code),
+        short_url=escape(short_url, quote=True),
+        destination_url=escape(destination_url, quote=True),
+        expires_at=escape(expires_at),
         hours_remaining=hours_remaining,
         total_clicks=total_clicks,
     )
