@@ -1,0 +1,42 @@
+<div class="zly-modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="zly-modal" style="width: 28rem;">
+        <h3 style="font-size: 0.75rem; letter-spacing: 0.15em; margin-bottom: 1rem; color: var(--zly-muted);">SMART RULE</h3>
+        <p style="font-size:0.65rem;color:var(--zly-muted);margin-bottom:1rem;">Route visitors based on geo, device, OS, language or referrer. Higher priority wins.</p>
+        <form hx-post="/api/v1/links/{{ link_id }}/rules"
+              hx-target="body" hx-swap="outerHTML"
+              hx-on::after-request="if(event.detail.successful){document.querySelector('.zly-modal-overlay').remove(); htmx.trigger('#rules-tbody','load');}">
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <label>Type</label>
+                        <select name="type" class="zly-input" required>
+                            <option value="country">Country (geo)</option>
+                            <option value="city">City</option>
+                            <option value="device">Device</option>
+                            <option value="os">OS</option>
+                            <option value="language">Language</option>
+                            <option value="referrer">Referrer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Priority</label>
+                        <input type="number" name="priority" class="zly-input" value="0" min="0" max="100">
+                    </div>
+                </div>
+                <div>
+                    <label>Match Value</label>
+                    <input type="text" name="match_value" class="zly-input" placeholder="e.g. US, mobile, en, google.com" required>
+                    <p style="font-size:0.55rem;color:var(--zly-muted);margin-top:0.25rem;">Country = ISO2, Device = mobile/desktop/tablet, OS = ios/android/windows</p>
+                </div>
+                <div>
+                    <label>Destination URL</label>
+                    <input type="url" name="destination_url" class="zly-input" placeholder="https://example.com/target" required>
+                </div>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px solid var(--zly-line);">
+                    <button type="button" class="zly-btn zly-btn-secondary" onclick="this.closest('.zly-modal-overlay').remove()">Cancel</button>
+                    <button type="submit" class="zly-btn zly-btn-primary">Save Rule</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

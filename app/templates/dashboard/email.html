@@ -23,7 +23,7 @@
             <button class="zly-btn zly-btn-primary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;"
                     hx-get="/dashboard/email/contacts/new-form" hx-target="#email-form-modal" hx-swap="innerHTML">+ Add Contact</button>
         </div>
-        <div class="zly-card" style="padding: 0; overflow: hidden;">
+        <div class="table-wrap">
             <table class="zly-table">
                 <thead><tr><th>Email</th><th>Status</th><th>Created</th><th style="text-align: right;">Actions</th></tr></thead>
                 <tbody id="contacts-tbody" hx-get="/dashboard/email/contacts/list" hx-trigger="load every 30s" hx-swap="innerHTML">
@@ -39,7 +39,7 @@
             <button class="zly-btn zly-btn-primary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;"
                     hx-get="/dashboard/email/templates/new-form" hx-target="#email-form-modal" hx-swap="innerHTML">+ New Template</button>
         </div>
-        <div class="zly-card" style="padding: 0; overflow: hidden;">
+        <div class="table-wrap">
             <table class="zly-table">
                 <thead><tr><th>Name</th><th>Subject</th><th>Default</th><th>Updated</th><th style="text-align: right;">Actions</th></tr></thead>
                 <tbody id="templates-tbody" hx-get="/dashboard/email/templates/list" hx-trigger="load every 30s" hx-swap="innerHTML">
@@ -55,7 +55,7 @@
             <button class="zly-btn zly-btn-primary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;"
                     hx-get="/dashboard/email/campaigns/new-form" hx-target="#email-form-modal" hx-swap="innerHTML">+ New Campaign</button>
         </div>
-        <div class="zly-card" style="padding: 0; overflow: hidden;">
+        <div class="table-wrap">
             <table class="zly-table">
                 <thead><tr><th>Name</th><th>Subject</th><th>Status</th><th>Stats</th><th>Created</th><th style="text-align: right;">Actions</th></tr></thead>
                 <tbody id="campaigns-tbody" hx-get="/dashboard/email/campaigns/list" hx-trigger="load every 30s" hx-swap="innerHTML">

@@ -2,23 +2,59 @@
 {% block title %}Links — Zly{% endblock %}
 {% block content %}
 <div style="max-width: 72rem; margin: 0 auto;">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
         <h1 style="font-size: 1.25rem; letter-spacing: 0.1em;">Links</h1>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="zly-btn zly-btn-ghost" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;" hx-get="/dashboard/folders/new-form" hx-target="#folder-form-modal" hx-swap="innerHTML">+ Folder</button>
             <button class="zly-btn zly-btn-secondary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;" hx-get="/dashboard/links/import-form" hx-target="#import-modal-here" hx-swap="innerHTML">Import CSV</button>
             <a href="/api/v1/workspaces/{{ workspace_id }}/links/export" class="zly-btn zly-btn-secondary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem; text-decoration: none;">Export CSV</a>
             <button class="zly-btn zly-btn-secondary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;" hx-get="/dashboard/links/check-expiring" hx-target="#expiring-result" hx-swap="innerHTML" hx-on::after-request="document.getElementById('expiring-result').style.display='block';">Check Expiring</button>
             <button class="zly-btn zly-btn-primary" hx-get="/dashboard/links/new-form" hx-target="#link-form-modal" hx-swap="innerHTML">+ New Link</button>
         </div>
     </div>
+
+    <div id="folder-form-modal"></div>
     <div id="import-modal-here"></div>
     <div id="link-form-modal"></div>
     <div id="expiring-result" style="display:none;padding:1rem;margin-bottom:1rem;font-size:0.65rem;" class="zly-card"></div>
     <div id="edit-link-modal"></div>
+
+    <div class="zly-card" style="padding:1rem; display:flex; gap:0.75rem; flex-wrap:wrap; align-items:end; margin-bottom:1rem;">
+        <div style="flex:1; min-width:14rem;">
+            <label>Search</label>
+            <input id="links-search" type="search" class="zly-input" placeholder="short code, title, URL…" style="font-size:0.75rem;"
+                   hx-get="/dashboard/links/list" hx-target="#links-tbody" hx-swap="innerHTML" hx-trigger="keyup changed delay:400ms"
+                   hx-include="#links-search,#folder-filter,#archived-filter"
+                   name="search">
+        </div>
+        <div>
+            <label>Folder</label>
+            <select id="folder-filter" name="folder_id" class="zly-input" style="min-width:10rem;"
+                    hx-get="/dashboard/links/list" hx-target="#links-tbody" hx-swap="innerHTML" hx-trigger="change"
+                    hx-include="#links-search,#folder-filter,#archived-filter">
+                <option value="">All folders</option>
+                <option value="none">No folder</option>
+                {% for f in folders or [] %}
+                <option value="{{ f.id }}">{{ f.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem; padding-bottom:0.4rem;">
+            <label style="display:flex; align-items:center; gap:0.35rem; margin:0; cursor:pointer; white-space:nowrap;">
+                <input id="archived-filter" type="checkbox" name="is_archived" value="true" style="accent-color: var(--zly-emerald);"
+                       hx-get="/dashboard/links/list" hx-target="#links-tbody" hx-swap="innerHTML" hx-trigger="change"
+                       hx-include="#links-search,#folder-filter,#archived-filter">
+                Archived
+            </label>
+        </div>
+        <button class="zly-btn zly-btn-ghost" style="font-size:0.6rem; padding:0.4rem 0.75rem;" onclick="document.getElementById('links-search').value=''; document.getElementById('folder-filter').value=''; document.getElementById('archived-filter').checked=false; htmx.trigger('#links-search','keyup');">Clear</button>
+    </div>
+
     <div class="table-wrap">
         <table class="zly-table">
             <thead>
                 <tr>
+                    <th><input type="checkbox" id="select-all" style="accent-color:var(--zly-emerald);" onclick="document.querySelectorAll('.link-check').forEach(c=>c.checked=this.checked)"></th>
                     <th>Short URL</th>
                     <th>Destination</th>
                     <th>Clicks</th>
@@ -29,7 +65,7 @@
             </thead>
             <tbody id="links-tbody" hx-get="/dashboard/links/list" hx-trigger="load every 30s" hx-swap="innerHTML">
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 2rem 1rem;">
+                    <td colspan="7" style="text-align: center; padding: 2rem 1rem;">
                         <div style="display:flex;justify-content:center;"><div class="zly-spinner"></div></div>
                         <p style="color:var(--zly-muted);font-family:'Space Grotesk',sans-serif;font-size:0.65rem;letter-spacing:0.08em;margin-top:0.75rem;">LOADING LINKS…</p>
                     </td>
@@ -37,6 +73,19 @@
             </tbody>
         </table>
     </div>
+    <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
+        <button class="zly-btn zly-btn-secondary" style="font-size:0.6rem; padding:0.35rem 0.75rem;" onclick="bulkAction('archive', true)">Archive Selected</button>
+        <button class="zly-btn zly-btn-secondary" style="font-size:0.6rem; padding:0.35rem 0.75rem;" onclick="bulkAction('archive', false)">Unarchive Selected</button>
+    </div>
     <p style="color:var(--zly-muted);font-size:0.65rem;font-family:'Space Mono',monospace;margin-top:0.75rem;">Live — auto-refresh every 30s. <span class="htmx-indicator" style="display:inline-flex;align-items:center;gap:0.35rem;"><span class="zly-spinner" style="width:0.75rem;height:0.75rem;border-width:1.5px;"></span> updating…</span></p>
 </div>
+<script>
+function bulkAction(kind, val) {
+    const ids = Array.from(document.querySelectorAll('.link-check:checked')).map(c=>c.value);
+    if (!ids.length) { zlyToast('No links selected','error'); return; }
+    fetch('/api/v1/links/bulk-archive', {method:'POST', headers:{'Content-Type':'application/json','X-CSRF-Token':(document.cookie.match(/zly_csrf_token=([^;]*)/)||[])[1]||''}, body: JSON.stringify({link_ids: ids, is_archived: val})})
+        .then(r=>{ if(!r.ok) throw new Error(); zlyToast(val?'Archived':'Unarchived','success'); htmx.trigger('#links-tbody','load'); })
+        .catch(()=> zlyToast('Bulk action failed','error'));
+}
+</script>
 {% endblock %}

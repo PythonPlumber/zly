@@ -24,20 +24,22 @@
         </div>
         <p style="color: var(--zly-muted); font-size: 0.85rem; word-break: break-all; margin-top: 0.5rem; font-family: 'Lora', serif;">{{ link.destination_url }}</p>
         <code style="color: var(--zly-emerald); font-size: 0.8rem; font-family: 'Space Mono', monospace;">/{{ link.short_code }}</code>
-        {% if not link.is_active %}
-        <span class="zly-badge zly-badge-danger" style="margin-left: 0.5rem;">Inactive</span>
-        {% endif %}
-        {% if link.expires_at %}
-        <span class="zly-badge zly-badge-warning" style="margin-left: 0.25rem;">Expires {{ link.expires_at.strftime('%Y-%m-%d') if link.expires_at.strftime else link.expires_at }}</span>
-        {% endif %}
+        {% if link.is_archived %}<span class="zly-badge zly-badge-hidden" style="margin-left: 0.5rem;">Archived</span>{% endif %}
+        {% if not link.is_active %}<span class="zly-badge zly-badge-danger" style="margin-left: 0.5rem;">Inactive</span>{% endif %}
+        {% if link.max_clicks %}<span class="zly-badge zly-badge-info" style="margin-left: 0.25rem;">{{ link.max_clicks }} max clicks</span>{% endif %}
+        {% if link.expires_at %}<span class="zly-badge zly-badge-warning" style="margin-left: 0.25rem;">Expires {{ link.expires_at.strftime('%Y-%m-%d') if link.expires_at.strftime else link.expires_at }}</span>{% endif %}
+        <span class="zly-badge" style="margin-left:0.25rem;"><a href="/api/v1/links/{{ link.id }}/analytics/export?format=csv" style="color:inherit;text-decoration:none;">Export CSV</a></span>
     </div>
 
     <div style="border-bottom: 1px solid var(--zly-line); margin-bottom: 1.5rem; display: flex; overflow-x: auto;">
         <button class="tab-btn active-tab" onclick="switchTab('analytics', this)" data-tab="analytics">Analytics</button>
-        <button class="tab-btn" onclick="switchTab('variants', this)" data-tab="variants">A/B Variants</button>
         <button class="tab-btn" onclick="switchTab('geo', this)" data-tab="geo">Geography</button>
+        <button class="tab-btn" onclick="switchTab('variants', this)" data-tab="variants">A/B Variants</button>
+        <button class="tab-btn" onclick="switchTab('rules', this)" data-tab="rules">Smart Rules</button>
+        <button class="tab-btn" onclick="switchTab('health', this)" data-tab="health">Health</button>
     </div>
     <div id="variant-form-modal"></div>
+    <div id="rule-form-modal"></div>
 
     <div id="tab-analytics" class="tab-panel active-panel">
         <div class="grid-4" id="stats-cards" style="margin-bottom: 1.5rem;">
@@ -93,7 +95,7 @@
 
     <div id="tab-variants" class="tab-panel">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-            <h3 style="font-size: 0.65rem; letter-spacing: 0.15em; color: var(--zly-muted);">Variants</h3>
+            <h3 style="font-size: 0.65rem; letter-spacing: 0.15em; color: var(--zly-muted);">A/B Variants</h3>
             <button class="zly-btn zly-btn-primary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;"
                     hx-get="/dashboard/links/{{ link.id }}/variants/new-form" hx-target="#variant-form-modal" hx-swap="innerHTML">+ Add Variant</button>
         </div>
@@ -106,6 +108,37 @@
                     <tr><td colspan="4" style="text-align: center; padding: 2rem 1rem;"><div class="zly-spinner" style="margin: 0 auto;"></div><p style="color:var(--zly-muted);font-size:0.65rem;letter-spacing:0.05em;margin-top:0.5rem;">LOADING VARIANTS…</p></td></tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <div id="tab-rules" class="tab-panel">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <div>
+                <h3 style="font-size: 0.65rem; letter-spacing: 0.15em; color: var(--zly-muted);">Smart Rules</h3>
+                <p style="font-size:0.6rem;color:var(--zly-muted);">Route by country, device, OS, language or referrer. Highest priority wins.</p>
+            </div>
+            <button class="zly-btn zly-btn-primary" style="font-size: 0.6rem; padding: 0.35rem 0.75rem;"
+                    hx-get="/dashboard/links/{{ link.id }}/rules/new-form" hx-target="#rule-form-modal" hx-swap="innerHTML">+ Add Rule</button>
+        </div>
+        <div class="table-wrap">
+            <table class="zly-table">
+                <thead><tr><th>Type</th><th>Match</th><th>Destination</th><th>Priority</th><th style="text-align:right;">Actions</th></tr></thead>
+                <tbody id="rules-tbody" hx-get="/dashboard/links/{{ link.id }}/rules/list" hx-trigger="load" hx-swap="innerHTML">
+                    <tr><td colspan="5" style="text-align:center;padding:2rem;"><div class="zly-spinner" style="margin:0 auto;"></div><p style="color:var(--zly-muted);font-size:0.65rem;margin-top:0.5rem;">LOADING RULES…</p></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="zly-card" style="margin-top:1rem; padding:1rem; font-size:0.7rem; color:var(--zly-muted);">
+            <strong style="color:var(--zly-cream);">Examples:</strong> country = US/GB/JP, device = mobile/desktop, os = ios/android, language = en/fr, referrer = google.com
+        </div>
+    </div>
+
+    <div id="tab-health" class="tab-panel">
+        <div class="zly-card" style="padding:1.5rem;">
+            <h3 style="font-size:0.65rem;letter-spacing:0.12em;color:var(--zly-muted);margin-bottom:1rem;">Link Health Check</h3>
+            <div id="health-result"><div style="display:flex;justify-content:center;padding:1rem;"><div class="zly-spinner"></div></div></div>
+            <button class="zly-btn zly-btn-secondary" style="margin-top:1rem;font-size:0.6rem;" onclick="checkHealth('{{ link.id }}')">Recheck</button>
+            <p style="font-size:0.6rem;color:var(--zly-muted);margin-top:0.75rem;">Checks destination URL via HEAD request (SSRF-protected). 200-399 = healthy.</p>
         </div>
     </div>
 </div>
@@ -123,6 +156,19 @@ function downloadQR(linkId, filename) {
         })
         .catch(function() { zlyToast('Failed to download QR code', 'error'); });
 }
+function checkHealth(linkId) {
+    var el = document.getElementById('health-result');
+    el.innerHTML = '<div style="display:flex;justify-content:center;padding:1rem;"><div class="zly-spinner"></div></div>';
+    fetch('/api/v1/links/' + linkId + '/health', {credentials:'same-origin'})
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            var badge = d.status === 'healthy' ? '<span class="zly-badge zly-badge-active">✓ Healthy</span>' : (d.status === 'unhealthy' ? '<span class="zly-badge zly-badge-danger">✗ Unhealthy ('+(d.http_code||'')+')</span>' : '<span class="zly-badge zly-badge-warning">'+(d.status||'unknown')+'</span>');
+            el.innerHTML = '<div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">'+badge+'<span style="font-family:Space Mono,monospace;font-size:0.7rem;color:var(--zly-muted);">'+(d.reason||'')+'</span></div>';
+        })
+        .catch(function(){ el.innerHTML = '<span class="zly-badge zly-badge-danger">Check failed</span>'; });
+}
+// Auto-check on load when health tab becomes visible or immediately
+setTimeout(function(){ var h=document.getElementById('health-result'); if(h) checkHealth(document.querySelector('meta[name="link-id"]').content); }, 500);
 (function(){
     var linkId = document.querySelector('meta[name="link-id"]').content;
     if (!linkId) return;

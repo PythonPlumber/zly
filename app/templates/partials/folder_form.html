@@ -1,0 +1,19 @@
+<div class="zly-modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="zly-modal" style="width: 24rem;">
+        <h3 style="font-size: 0.75rem; letter-spacing: 0.15em; margin-bottom: 1rem; color: var(--zly-muted);">NEW FOLDER</h3>
+        <form hx-post="/api/v1/workspaces/{{ workspace_id }}/folders"
+              hx-target="body" hx-swap="outerHTML"
+              hx-on::after-request="if(event.detail.successful){document.querySelector('.zly-modal-overlay').remove(); location.reload();}">
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label>Folder Name</label>
+                    <input type="text" name="name" class="zly-input" placeholder="e.g. Campaign Q1" required maxlength="100">
+                </div>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px solid var(--zly-line);">
+                    <button type="button" class="zly-btn zly-btn-secondary" onclick="this.closest('.zly-modal-overlay').remove()">Cancel</button>
+                    <button type="submit" class="zly-btn zly-btn-primary">Create</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

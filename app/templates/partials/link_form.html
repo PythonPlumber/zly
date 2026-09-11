@@ -35,15 +35,32 @@
                         <input type="datetime-local" name="expires_at" value="{{ link.expires_at.strftime('%Y-%m-%dT%H:%M') if link and link.expires_at else '' }}" class="zly-input">
                     </div>
                     <div>
-                        <label>&nbsp;</label>
-                        <p style="font-size: 0.6rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.03em; padding-top: 0.375rem;">Link becomes active at this time. Leave blank for immediate.</p>
+                        <label>Max Clicks (optional)</label>
+                        <input type="number" name="max_clicks" value="{{ link.max_clicks if link and link.max_clicks else '' }}" class="zly-input" placeholder="Unlimited" min="1">
                     </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <label style="margin: 0; cursor: pointer;">Active</label>
-                    <input type="checkbox" name="is_active" value="false" {% if not link or link.is_active %}checked{% endif %} style="accent-color: var(--zly-emerald); width: 1rem; height: 1rem;"
-                           onchange="this.value=this.checked ? 'true' : 'false'">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label>Folder (optional)</label>
+                        <select name="folder_id" class="zly-input">
+                            <option value="">No folder</option>
+                            {% for f in folders or [] %}
+                            <option value="{{ f.id }}" {% if link and link.folder_id == f.id %}selected{% endif %}>{{ f.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1.25rem; padding-top: 1.25rem;">
+                        <label style="display:flex;align-items:center;gap:0.4rem;margin:0;cursor:pointer;">
+                            <input type="checkbox" name="is_active" value="false" {% if not link or link.is_active %}checked{% endif %} style="accent-color: var(--zly-emerald); width: 1rem; height: 1rem;" onchange="this.value=this.checked ? 'true' : 'false'">
+                            Active
+                        </label>
+                        <label style="display:flex;align-items:center;gap:0.4rem;margin:0;cursor:pointer;">
+                            <input type="checkbox" name="is_archived" value="false" {% if link and link.is_archived %}checked{% endif %} style="accent-color: var(--zly-emerald); width: 1rem; height: 1rem;" onchange="this.value=this.checked ? 'true' : 'false'">
+                            Archived
+                        </label>
+                    </div>
                 </div>
+                <p style="font-size: 0.6rem; color: var(--zly-muted); font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.03em;">Archived links return 410. Max clicks auto-disables after limit.</p>
                 <details style="border:1px solid var(--zly-line);border-radius:0.25rem;">
                     <summary style="padding:0.5rem;font-size:0.6rem;letter-spacing:0.1em;cursor:pointer;color:var(--zly-muted);">UTM Parameters</summary>
                     <div style="padding:0.75rem;display:flex;flex-direction:column;gap:0.75rem;">

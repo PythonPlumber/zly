@@ -50,9 +50,16 @@ async def links_page(
 ):
     workspaces, _, _ = await get_workspaces_for_user(db, current_user.id)
     default_ws = workspaces[0] if workspaces else None
+    folders = []
+    if default_ws:
+        try:
+            from app.services.folder_service import get_folders as _gf
+            folders = await _gf(db, default_ws.id)
+        except Exception:
+            folders = []
     return templates.TemplateResponse(
         request, "dashboard/links.html",
-        {"user": current_user, "workspace_id": default_ws.id if default_ws else ""},
+        {"user": current_user, "workspace_id": default_ws.id if default_ws else "", "folders": folders},
     )
 
 
@@ -309,16 +316,35 @@ async def links_list(
     workspaces, _, _ = await get_workspaces_for_user(db, current_user.id)
     default_ws = workspaces[0] if workspaces else None
     if not default_ws:
-        return HTMLResponse('<tr><td colspan="6" style="text-align:center;padding:3rem 1rem;color:var(--zly-muted);font-family:Space Grotesk,sans-serif;font-size:0.7rem;letter-spacing:0.05em;">NO WORKSPACE</td></tr>')
+        return HTMLResponse('<tr><td colspan="7" style="text-align:center;padding:3rem 1rem;color:var(--zly-muted);font-family:Space Grotesk,sans-serif;font-size:0.7rem;letter-spacing:0.05em;">NO WORKSPACE</td></tr>')
     now = datetime.now(timezone.utc)
-    links, total, has_next = await get_links(db, default_ws.id, page=1, page_size=50)
+    search = request.query_params.get("search") or None
+    folder_id = request.query_params.get("folder_id") or None
+    if folder_id == "none":
+        folder_id = "__none__"  # sentinel for no folder filter handled below
+    is_archived_raw = request.query_params.get("is_archived")
+    is_archived = True if is_archived_raw in ("true","on","1") else (None if is_archived_raw is None else False)
+    # Handle folder none vs all
+    if folder_id == "__none__":
+        # filter links where folder_id is NULL
+        from sqlalchemy import select as _select
+        from app.models.link import Link as _Link
+        # Use get_links with no folder then filter manually
+        links_all, total_all, _ = await get_links(db, default_ws.id, page=1, page_size=200, search=search, is_archived=is_archived)
+        links = [l for l in links_all if not getattr(l, "folder_id", None)]
+        total = len(links)
+        has_next = False
+    else:
+        links, total, has_next = await get_links(db, default_ws.id, page=1, page_size=50, search=search, folder_id=folder_id, is_archived=is_archived)
     rows = []
     for link in links:
         badge_html = ''
+        if getattr(link, "is_archived", False):
+            badge_html += '<span class="zly-badge zly-badge-hidden">Archived</span> '
         if link.is_active:
-            badge_html = '<span class="zly-badge zly-badge-active">Active</span>'
+            badge_html += '<span class="zly-badge zly-badge-active">Active</span>'
         else:
-            badge_html = '<span class="zly-badge zly-badge-hidden">Inactive</span>'
+            badge_html += '<span class="zly-badge zly-badge-hidden">Inactive</span>'
         if link.expires_at:
             delta = (link.expires_at - now).total_seconds()
             if delta <= 0:
@@ -327,21 +353,29 @@ async def links_list(
                 badge_html += ' <span class="zly-badge zly-badge-warning" style="background:rgba(255,107,53,0.12)!important;color:#ff6b35!important;">Expiring</span>'
         if link.password_hash:
             badge_html += ' <span class="zly-badge zly-badge-warning">Protected</span>'
+        if getattr(link, "max_clicks", None):
+            badge_html += f' <span class="zly-badge zly-badge-info" style="font-size:0.5rem;">{link.max_clicks} max</span>'
         health_badge = ''
-        if link.is_active:
+        # Skip live HEAD check if link archived/inactive to save time
+        if link.is_active and not getattr(link, "is_archived", False):
             try:
-                resp = await httpx.AsyncClient(timeout=2.0).head(link.destination_url, follow_redirects=True)
-                status_code = resp.status_code
-                if 200 <= status_code < 400:
-                    health_badge = ' <span class="zly-badge zly-badge-active" style="font-size:0.5rem;">✓ Online</span>'
-                else:
-                    health_badge = f' <span class="zly-badge zly-badge-danger" style="font-size:0.5rem;">✗ {status_code}</span>'
+                async with httpx.AsyncClient(timeout=1.5) as client:
+                    resp = await client.head(link.destination_url, follow_redirects=True)
+                    status_code = resp.status_code
+                    if 200 <= status_code < 400:
+                        health_badge = ' <span class="zly-badge zly-badge-active" style="font-size:0.5rem;">✓ Online</span>'
+                    else:
+                        health_badge = f' <span class="zly-badge zly-badge-danger" style="font-size:0.5rem;">✗ {status_code}</span>'
             except Exception:
                 health_badge = ' <span class="zly-badge zly-badge-warning" style="font-size:0.5rem;">⚠ Timeout</span>'
+        folder_hint = ''
+        if getattr(link, "folder_id", None):
+            folder_hint = '<span style="font-size:0.55rem;color:var(--zly-muted);">📁</span> '
         rows.append(f'''<tr>
-            <td style="max-width:12rem;"><code style="font-family:Space Mono,monospace;font-size:0.75rem;color:var(--zly-emerald);cursor:pointer;" onclick="copyToClipboard('/{h(link.short_code)}')">/{h(link.short_code)}</code></td>
+            <td><input type="checkbox" class="link-check" value="{link.id}" style="accent-color:var(--zly-emerald);"></td>
+            <td style="max-width:12rem;">{folder_hint}<code style="font-family:Space Mono,monospace;font-size:0.75rem;color:var(--zly-emerald);cursor:pointer;" onclick="copyToClipboard('/{h(link.short_code)}')">/{h(link.short_code)}</code></td>
             <td style="max-width:16rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{h(link.destination_url)}</td>
-            <td style="font-family:Space Mono,monospace;font-size:0.75rem;">{link.clicks or 0}</td>
+            <td style="font-family:Space Mono,monospace;font-size:0.75rem;">{getattr(link, "clicks", 0) or 0}</td>
             <td>{badge_html}{health_badge}</td>
             <td style="font-family:Space Mono,monospace;font-size:0.7rem;color:var(--zly-muted);">{link.created_at.strftime('%Y-%m-%d') if link.created_at else ''}</td>
             <td style="text-align:right;white-space:nowrap;">
@@ -351,7 +385,7 @@ async def links_list(
             </td>
         </tr>''')
     if not rows:
-        return HTMLResponse('<tr><td colspan="6" style="text-align:center;padding:3rem 1rem;color:var(--zly-muted);font-family:Space Grotesk,sans-serif;font-size:0.7rem;letter-spacing:0.05em;">NO LINKS YET. CREATE ONE.</td></tr>')
+        return HTMLResponse('<tr><td colspan="7" style="text-align:center;padding:3rem 1rem;color:var(--zly-muted);font-family:Space Grotesk,sans-serif;font-size:0.7rem;letter-spacing:0.05em;">NO LINKS FOUND. TRY CLEARING FILTERS.</td></tr>')
     return HTMLResponse("".join(rows))
 
 
@@ -363,9 +397,16 @@ async def link_new_form(
 ):
     workspaces, _, _ = await get_workspaces_for_user(db, current_user.id)
     default_ws = workspaces[0] if workspaces else None
+    folders = []
+    if default_ws:
+        try:
+            from app.services.folder_service import get_folders
+            folders = await get_folders(db, default_ws.id)
+        except Exception:
+            folders = []
     return templates.TemplateResponse(
         request, "partials/link_form.html",
-        {"workspace_id": default_ws.id if default_ws else ""},
+        {"workspace_id": default_ws.id if default_ws else "", "folders": folders},
     )
 
 
@@ -421,9 +462,15 @@ async def link_edit_form(
     link = await get_link_by_id(db, link_id)
     if not link:
         raise HTTPException(status_code=404)
+    folders = []
+    try:
+        from app.services.folder_service import get_folders
+        folders = await get_folders(db, link.workspace_id)
+    except Exception:
+        pass
     return templates.TemplateResponse(
         request, "partials/link_form.html",
-        {"link": link, "workspace_id": link.workspace_id},
+        {"link": link, "workspace_id": link.workspace_id, "folders": folders},
     )
 
 
@@ -819,6 +866,87 @@ async def variant_edit_form(
         request, "partials/variant_form.html",
         {"variant": variant, "link_id": link_id},
     )
+
+
+@router.get("/dashboard/folders/list", response_class=HTMLResponse)
+async def folders_list(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    workspaces, _, _ = await get_workspaces_for_user(db, current_user.id)
+    default_ws = workspaces[0] if workspaces else None
+    if not default_ws:
+        return HTMLResponse('<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--zly-muted);">NO WORKSPACE</td></tr>')
+    try:
+        from app.services.folder_service import get_folders
+        folders = await get_folders(db, default_ws.id)
+    except Exception:
+        folders = []
+    rows = []
+    for f in folders:
+        rows.append(f'''<tr>
+            <td style="font-weight:500;font-family:Space Grotesk,sans-serif;font-size:0.75rem;">{h(f.name)}</td>
+            <td style="font-family:Space Mono,monospace;font-size:0.7rem;color:var(--zly-muted);">{f.created_at.strftime('%Y-%m-%d') if f.created_at else ''}</td>
+            <td style="text-align:right;">
+                <button class="zly-btn zly-btn-danger" style="font-size:0.55rem;padding:0.25rem 0.6rem;" hx-delete="/api/v1/workspaces/{default_ws.id}/folders/{f.id}" hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Delete this folder?">Delete</button>
+            </td>
+        </tr>''')
+    if not rows:
+        return HTMLResponse('<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--zly-muted);font-family:Space Grotesk,sans-serif;font-size:0.65rem;">No folders yet. Create one to organize links.</td></tr>')
+    return HTMLResponse("".join(rows))
+
+
+@router.get("/dashboard/folders/new-form", response_class=HTMLResponse)
+async def folder_new_form(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    workspaces, _, _ = await get_workspaces_for_user(db, current_user.id)
+    default_ws = workspaces[0] if workspaces else None
+    return templates.TemplateResponse(request, "partials/folder_form.html", {"workspace_id": default_ws.id if default_ws else ""})
+
+
+@router.get("/dashboard/links/{link_id}/rules/list", response_class=HTMLResponse)
+async def rules_list(
+    request: Request,
+    link_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.services.link_service import get_link_by_id as _gl
+    link = await _gl(db, link_id)
+    if not link:
+        raise HTTPException(status_code=404)
+    try:
+        from app.services.link_rule_service import get_rules
+        rules = await get_rules(db, link_id)
+    except Exception:
+        rules = []
+    rows = []
+    for r in rules:
+        rows.append(f'''<tr>
+            <td><span class="zly-badge zly-badge-role">{h(r.type)}</span></td>
+            <td style="font-family:Space Mono,monospace;font-size:0.7rem;">{h(r.match_value)}</td>
+            <td style="max-width:14rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:0.7rem;">{h(r.destination_url)}</td>
+            <td style="font-family:Space Mono,monospace;font-size:0.7rem;">{r.priority}</td>
+            <td style="text-align:right;">
+                <button class="zly-btn zly-btn-danger" style="font-size:0.55rem;padding:0.25rem 0.6rem;" hx-delete="/api/v1/links/{link_id}/rules/{r.id}" hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Delete this rule?">Delete</button>
+            </td>
+        </tr>''')
+    if not rows:
+        return HTMLResponse('<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--zly-muted);font-family:Space Grotesk,sans-serif;font-size:0.65rem;">No smart rules yet. Add one to route by geo/device.</td></tr>')
+    return HTMLResponse("".join(rows))
+
+
+@router.get("/dashboard/links/{link_id}/rules/new-form", response_class=HTMLResponse)
+async def rule_new_form(
+    request: Request,
+    link_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    return templates.TemplateResponse(request, "partials/rule_form.html", {"link_id": link_id})
 
 
 @router.get("/dashboard/bio/links/{link_id}/edit-form", response_class=HTMLResponse)

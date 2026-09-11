@@ -1,0 +1,11 @@
+<tr>
+    <td><span class="zly-badge zly-badge-role">{{ rule.type }}</span></td>
+    <td style="font-family:'Space Mono',monospace;font-size:0.7rem;">{{ rule.match_value }}</td>
+    <td style="max-width:14rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:0.7rem;">{{ rule.destination_url }}</td>
+    <td style="font-family:'Space Mono',monospace;font-size:0.7rem;">{{ rule.priority }}</td>
+    <td style="text-align:right;">
+        <button class="zly-btn zly-btn-danger" style="font-size:0.55rem;padding:0.25rem 0.6rem;"
+                hx-delete="/api/v1/links/{{ link_id }}/rules/{{ rule.id }}"
+                hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Delete this rule?">Delete</button>
+    </td>
+</tr>

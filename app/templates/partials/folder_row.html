@@ -1,0 +1,11 @@
+<tr>
+    <td style="font-weight:500;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;">{{ folder.name }}</td>
+    <td style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--zly-muted);">{{ folder.created_at.strftime('%Y-%m-%d') if folder.created_at else '' }}</td>
+    <td style="text-align:right;">
+        <button class="zly-btn zly-btn-danger" style="font-size:0.55rem;padding:0.25rem 0.6rem;"
+                hx-delete="/api/v1/workspaces/{{ workspace_id }}/folders/{{ folder.id }}"
+                hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Delete this folder? Links will be unfiled.">
+            Delete
+        </button>
+    </td>
+</tr>
